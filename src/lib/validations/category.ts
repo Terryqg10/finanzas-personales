@@ -32,6 +32,10 @@ export const updateCategorySchema = createCategorySchema.extend({
   id: z.string().uuid('Identificador inválido.'),
 });
 
+export const deleteCategorySchema = z.object({
+  id: z.string().uuid('Identificador inválido.'),
+});
+
 export interface CategoryActionState {
   status: 'idle' | 'error' | 'success';
   message: string | null;

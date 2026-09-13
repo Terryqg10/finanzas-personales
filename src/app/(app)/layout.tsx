@@ -23,6 +23,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         <AppTopbar />
         <main className="flex-1 p-4 md:p-8">{children}</main>
       </div>
+      <div className="from-background pointer-events-none fixed inset-x-0 bottom-0 z-30 h-28 bg-gradient-to-t to-transparent md:hidden" />
       <AppBottomNav />
     </div>
   );
