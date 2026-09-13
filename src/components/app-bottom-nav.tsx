@@ -10,20 +10,22 @@ export function AppBottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="border-border bg-card fixed inset-x-0 bottom-0 z-40 flex border-t md:hidden">
+    <nav className="border-border bg-card fixed inset-x-6 bottom-5 z-40 flex items-center justify-around rounded-full border px-2 py-2 shadow-lg md:hidden">
       {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
         const isActive = pathname === href;
         return (
           <Link
             key={href}
             href={href}
+            aria-label={label}
             className={cn(
-              'flex flex-1 flex-col items-center gap-1 py-2.5 text-xs font-medium',
-              isActive ? 'text-primary' : 'text-muted-foreground',
+              'flex size-11 items-center justify-center rounded-full transition-colors',
+              isActive
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:bg-secondary',
             )}
           >
             <Icon size={20} />
-            {label}
           </Link>
         );
       })}
