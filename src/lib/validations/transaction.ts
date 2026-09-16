@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { SUPPORTED_CURRENCY_CODES } from '@/lib/currencies';
+
 export const createTransactionSchema = z.object({
   type: z.enum(['income', 'expense'], { message: 'Elige un tipo de movimiento.' }),
   description: z
@@ -13,10 +15,13 @@ export const createTransactionSchema = z.object({
     .positive('La cantidad debe ser mayor que cero.')
     .max(999_999_999, 'Cantidad demasiado alta.'),
   categoryId: z.string().uuid('Elige una categoría.'),
+  currency: z.enum(SUPPORTED_CURRENCY_CODES, { message: 'Moneda no soportada.' }),
 });
+
 export const updateTransactionSchema = createTransactionSchema.extend({
   id: z.string().uuid('Identificador inválido.'),
 });
+
 export const deleteTransactionSchema = z.object({
   id: z.string().uuid('Identificador inválido.'),
 });

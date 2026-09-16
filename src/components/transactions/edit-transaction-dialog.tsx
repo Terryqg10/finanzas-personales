@@ -6,6 +6,7 @@ import { useFormStatus } from 'react-dom';
 import { toast } from 'sonner';
 
 import { updateTransaction } from '@/app/(app)/movimientos/actions';
+import { TransactionFormFields } from '@/components/transactions/transaction-form-fields';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -16,7 +17,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { TransactionFormFields } from '@/components/transactions/transaction-form-fields';
 import type { Category } from '@/lib/data/categories';
 import type { TransactionWithCategory } from '@/lib/data/transactions';
 import { initialTransactionState } from '@/lib/validations/transaction';
@@ -33,14 +33,13 @@ function SubmitButton() {
 export function EditTransactionDialog({
   transaction,
   categories,
-  baseCurrency,
 }: {
   transaction: TransactionWithCategory;
   categories: Category[];
-  baseCurrency: string;
 }) {
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<'income' | 'expense'>(transaction.type);
+  const [currency, setCurrency] = useState(transaction.currency_original);
   const [state, formAction] = useActionState(updateTransaction, initialTransactionState);
 
   useEffect(() => {
@@ -60,15 +59,19 @@ export function EditTransactionDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Editar movimiento</DialogTitle>
-          <DialogDescription>Cambia los datos del movimiento.</DialogDescription>
+          <DialogDescription>
+            Cambia los datos del movimiento. La moneda no se puede cambiar al editar.
+          </DialogDescription>
         </DialogHeader>
         <form action={formAction} className="space-y-4">
           <input type="hidden" name="id" value={transaction.id} />
           <TransactionFormFields
             type={type}
             onTypeChange={setType}
+            currency={currency}
+            onCurrencyChange={setCurrency}
+            currencyEditable={false}
             categories={categories}
-            baseCurrency={baseCurrency}
             defaultDescription={transaction.description}
             defaultAmount={transaction.amount_original}
             defaultDate={transaction.date}

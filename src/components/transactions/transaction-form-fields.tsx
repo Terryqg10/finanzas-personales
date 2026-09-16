@@ -10,14 +10,17 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { Category } from '@/lib/data/categories';
+import { SUPPORTED_CURRENCIES } from '@/lib/currencies';
 import { getCurrencySymbol } from '@/lib/currency-symbol';
 import { cn } from '@/lib/utils';
 
 interface TransactionFormFieldsProps {
   type: 'income' | 'expense';
   onTypeChange: (type: 'income' | 'expense') => void;
+  currency: string;
+  onCurrencyChange: (currency: string) => void;
+  currencyEditable?: boolean;
   categories: Category[];
-  baseCurrency: string;
   defaultDescription?: string;
   defaultAmount?: number;
   defaultDate?: string;
@@ -27,14 +30,16 @@ interface TransactionFormFieldsProps {
 export function TransactionFormFields({
   type,
   onTypeChange,
+  currency,
+  onCurrencyChange,
+  currencyEditable = true,
   categories,
-  baseCurrency,
   defaultDescription,
   defaultAmount,
   defaultDate,
   defaultCategoryId,
 }: TransactionFormFieldsProps) {
-  const currencySymbol = getCurrencySymbol(baseCurrency);
+  const currencySymbol = getCurrencySymbol(currency);
 
   return (
     <>
@@ -102,9 +107,34 @@ export function TransactionFormFields({
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="date">Fecha</Label>
-          <Input id="date" name="date" type="date" defaultValue={defaultDate} required />
+          <Label htmlFor="currency">Moneda</Label>
+          {currencyEditable ? (
+            <Select name="currency" value={currency} onValueChange={onCurrencyChange}>
+              <SelectTrigger id="currency" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SUPPORTED_CURRENCIES.map((c) => (
+                  <SelectItem key={c.code} value={c.code}>
+                    {c.code}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <>
+              <input type="hidden" name="currency" value={currency} />
+              <div className="border-border bg-muted text-muted-foreground flex h-9 items-center rounded-md border px-3 text-sm">
+                {currency}
+              </div>
+            </>
+          )}
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="date">Fecha</Label>
+        <Input id="date" name="date" type="date" defaultValue={defaultDate} required />
       </div>
 
       <div className="space-y-2">

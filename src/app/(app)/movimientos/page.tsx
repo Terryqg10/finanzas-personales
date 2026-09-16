@@ -41,16 +41,15 @@ export default async function MovimientosPage() {
                 style={{ backgroundColor: tx.categories?.color ?? '#71717A' }}
               />
               <span className="flex-1 truncate font-sans">{tx.description}</span>
+              {tx.currency_original !== tx.currency_base && (
+                <span className="text-muted-foreground text-xs">{tx.currency_original}</span>
+              )}
               <span className={tx.type === 'income' ? 'text-emerald-600' : 'text-foreground'}>
                 {tx.type === 'income' ? '+' : '-'}
                 {formatMoney(tx.amount_base, tx.currency_base)}
               </span>
               <div className="flex items-center gap-1">
-                <EditTransactionDialog
-                  transaction={tx}
-                  categories={categories}
-                  baseCurrency={settings.base_currency}
-                />
+                <EditTransactionDialog transaction={tx} categories={categories} />
                 <DeleteTransactionDialog transaction={tx} />
               </div>
             </li>

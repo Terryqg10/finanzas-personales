@@ -5,6 +5,7 @@ import { useFormStatus } from 'react-dom';
 import { toast } from 'sonner';
 
 import { createTransaction } from '@/app/(app)/movimientos/actions';
+import { TransactionFormFields } from '@/components/transactions/transaction-form-fields';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,7 +16,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { TransactionFormFields } from '@/components/transactions/transaction-form-fields';
 import type { Category } from '@/lib/data/categories';
 import { initialTransactionState } from '@/lib/validations/transaction';
 
@@ -41,6 +41,7 @@ export function CreateTransactionDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<'income' | 'expense'>('expense');
+  const [currency, setCurrency] = useState(baseCurrency);
   const [state, formAction] = useActionState(createTransaction, initialTransactionState);
 
   useEffect(() => {
@@ -64,8 +65,9 @@ export function CreateTransactionDialog({
           <TransactionFormFields
             type={type}
             onTypeChange={setType}
+            currency={currency}
+            onCurrencyChange={setCurrency}
             categories={categories}
-            baseCurrency={baseCurrency}
             defaultDate={todayIsoDate()}
           />
 

@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 
 import { getUserSettings } from '@/lib/data/user-settings';
+import { getExchangeRate } from '@/lib/exchange-rate';
 import { createClient } from '@/lib/supabase/server';
 import {
   createTransactionSchema,
@@ -21,6 +22,7 @@ export async function createTransaction(
     date: formData.get('date'),
     amount: formData.get('amount'),
     categoryId: formData.get('categoryId'),
+    currency: formData.get('currency'),
   });
 
   if (!parsed.success) {
@@ -43,14 +45,19 @@ export async function createTransaction(
     return { status: 'error', message: 'Tu sesión ha expirado. Inicia sesión de nuevo.' };
   }
 
-  // Fase 6: sin selector de moneda todavía (llega en la Fase 7).
-  // El movimiento se registra en la moneda base del usuario, con
-  // tasa 1 — currency_original y currency_base coinciden a propósito.
   let settings;
   try {
     settings = await getUserSettings();
   } catch (err) {
     const message = err instanceof Error ? err.message : 'No se pudo determinar tu moneda base.';
+    return { status: 'error', message };
+  }
+
+  let rateResult;
+  try {
+    rateResult = await getExchangeRate(parsed.data.currency, settings.base_currency);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'No se pudo obtener la tasa de cambio.';
     return { status: 'error', message };
   }
 
@@ -61,9 +68,9 @@ export async function createTransaction(
     description: parsed.data.description,
     date: parsed.data.date,
     amount_original: parsed.data.amount,
-    currency_original: settings.base_currency,
+    currency_original: parsed.data.currency,
     currency_base: settings.base_currency,
-    exchange_rate_used: 1,
+    exchange_rate_used: rateResult.rate,
   });
 
   if (error) {
@@ -75,6 +82,15 @@ export async function createTransaction(
 
   revalidatePath('/movimientos');
   revalidatePath('/');
+
+  if (rateResult.stale) {
+    return {
+      status: 'success',
+      message:
+        'Movimiento registrado. Aviso: el servicio de tasas de cambio no respondió, se usó la última tasa conocida.',
+    };
+  }
+
   return { status: 'success', message: 'Movimiento registrado.' };
 }
 
@@ -89,6 +105,7 @@ export async function updateTransaction(
     date: formData.get('date'),
     amount: formData.get('amount'),
     categoryId: formData.get('categoryId'),
+    currency: formData.get('currency'),
   });
 
   if (!parsed.success) {
@@ -111,9 +128,6 @@ export async function updateTransaction(
     return { status: 'error', message: 'Tu sesión ha expirado. Inicia sesión de nuevo.' };
   }
 
-  // No se toca exchange_rate_used ni currency_*: editar corrige datos
-  // dentro de la misma moneda, no re-convierte. amount_base se
-  // recalcula solo al cambiar amount_original (columna generada).
   const { data, error } = await supabase
     .from('transactions')
     .update({
