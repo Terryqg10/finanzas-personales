@@ -88,11 +88,9 @@ export function TransactionFormFields({
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="amount">Cantidad</Label>
-          <div className="relative">
-            <span className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm">
-              {currencySymbol}
-            </span>
-            <Input
+          <div className="border-input focus-within:border-ring focus-within:ring-ring/50 flex h-9 items-center gap-1.5 rounded-md border bg-transparent px-3 shadow-xs focus-within:ring-[3px]">
+            <span className="text-muted-foreground shrink-0 text-sm">{currencySymbol}</span>
+            <input
               id="amount"
               name="amount"
               type="number"
@@ -100,9 +98,9 @@ export function TransactionFormFields({
               min="0.01"
               inputMode="decimal"
               placeholder="0.00"
-              className="pl-7"
               defaultValue={defaultAmount}
               required
+              className="placeholder:text-muted-foreground h-full w-full bg-transparent text-sm outline-none"
             />
           </div>
         </div>
