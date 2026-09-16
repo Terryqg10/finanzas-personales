@@ -1,10 +1,8 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
-import { updateBaseCurrency } from '@/app/(app)/configuracion/actions';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -14,44 +12,52 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { SUPPORTED_CURRENCIES } from '@/lib/currencies';
-import { initialSettingsState } from '@/lib/validations/settings';
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" size="sm" disabled={pending}>
-      {pending ? 'Guardando…' : 'Guardar'}
-    </Button>
-  );
-}
 
 export function BaseCurrencyForm({ currentCurrency }: { currentCurrency: string }) {
-  const [currency, setCurrency] = useState(currentCurrency);
-  const [state, formAction] = useActionState(updateBaseCurrency, initialSettingsState);
+  const [selection, setSelection] = useState(currentCurrency);
+  const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
-    if (state.status === 'success') {
-      toast.success(state.message ?? 'Moneda base actualizada.');
-    } else if (state.status === 'error') {
-      toast.error(state.message ?? 'Algo salió mal.');
-    }
-  }, [state]);
+  function handleSave() {
+    const currencyToSave = selection;
+
+    startTransition(async () => {
+      try {
+        const response = await fetch('/api/settings/base-currency', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ baseCurrency: currencyToSave }),
+        });
+
+        if (!response.ok) {
+          const data = (await response.json().catch(() => null)) as { error?: string } | null;
+          toast.error(data?.error ?? 'No se pudo actualizar la moneda base.');
+          return;
+        }
+
+        toast.success('Moneda base actualizada.');
+      } catch {
+        toast.error('No se pudo conectar con el servidor.');
+      }
+    });
+  }
 
   return (
-    <form action={formAction} className="flex items-center gap-2">
-      <Select name="baseCurrency" value={currency} onValueChange={setCurrency}>
+    <div className="flex items-center gap-2">
+      <Select value={selection} onValueChange={setSelection} disabled={isPending}>
         <SelectTrigger className="w-56">
           <SelectValue placeholder="Elige una moneda" />
         </SelectTrigger>
         <SelectContent>
-          {SUPPORTED_CURRENCIES.map((c) => (
-            <SelectItem key={c.code} value={c.code}>
-              {c.code} — {c.name}
+          {SUPPORTED_CURRENCIES.map((currency) => (
+            <SelectItem key={currency.code} value={currency.code}>
+              {currency.code} — {currency.name}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
-      <SubmitButton />
-    </form>
+      <Button type="button" size="sm" onClick={handleSave} disabled={isPending}>
+        {isPending ? 'Guardando…' : 'Guardar'}
+      </Button>
+    </div>
   );
 }
