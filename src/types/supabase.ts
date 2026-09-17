@@ -257,7 +257,56 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      get_balance_summary: {
+        Args: { p_currency: string };
+        Returns: {
+          expense: number;
+          income: number;
+          other_currency_count: number;
+        }[];
+      };
+      get_budget_progress: {
+        Args: { p_currency: string };
+        Returns: {
+          alert_threshold: number;
+          budget_id: string;
+          category_color: string;
+          category_id: string;
+          category_name: string;
+          monthly_limit: number;
+          spent: number;
+        }[];
+      };
+      get_category_breakdown: {
+        Args: { p_currency: string; p_end: string; p_start: string };
+        Returns: {
+          category_color: string;
+          category_id: string;
+          category_name: string;
+          total: number;
+        }[];
+      };
+      get_monthly_evolution: {
+        Args: { p_currency: string; p_months?: number };
+        Returns: {
+          expense: number;
+          income: number;
+          month: string;
+        }[];
+      };
+      get_pending_recurring_reminders: {
+        Args: never;
+        Returns: {
+          amount: number;
+          category_color: string;
+          category_name: string;
+          currency: string;
+          description: string;
+          next_due_date: string;
+          rule_id: string;
+          type: string;
+        }[];
+      };
     };
     Enums: {
       recurring_frequency: 'weekly' | 'monthly' | 'yearly';
