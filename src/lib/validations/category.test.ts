@@ -8,6 +8,7 @@ describe('createCategorySchema', () => {
       name: 'Mascotas',
       color: '#FF00AA',
       icon: 'paw-print',
+      isEssential: 'false',
     });
     expect(result.success).toBe(true);
   });
@@ -17,6 +18,7 @@ describe('createCategorySchema', () => {
       name: '  Mascotas  ',
       color: '#FF00AA',
       icon: 'paw-print',
+      isEssential: 'false',
     });
     expect(result.success).toBe(true);
     if (result.success) {
@@ -29,6 +31,7 @@ describe('createCategorySchema', () => {
       name: '   ',
       color: '#FF00AA',
       icon: 'paw-print',
+      isEssential: 'false',
     });
     expect(result.success).toBe(false);
   });
@@ -38,6 +41,7 @@ describe('createCategorySchema', () => {
       name: 'a'.repeat(41),
       color: '#FF00AA',
       icon: 'paw-print',
+      isEssential: 'false',
     });
     expect(result.success).toBe(false);
   });
@@ -47,6 +51,7 @@ describe('createCategorySchema', () => {
       name: 'a'.repeat(40),
       color: '#FF00AA',
       icon: 'paw-print',
+      isEssential: 'false',
     });
     expect(result.success).toBe(true);
   });
@@ -56,6 +61,7 @@ describe('createCategorySchema', () => {
       name: 'Mascotas',
       color: 'azul',
       icon: 'paw-print',
+      isEssential: 'false',
     });
     expect(result.success).toBe(false);
   });
@@ -65,6 +71,7 @@ describe('createCategorySchema', () => {
       name: 'Mascotas',
       color: 'FF00AA',
       icon: 'paw-print',
+      isEssential: 'false',
     });
     expect(result.success).toBe(false);
   });
@@ -74,6 +81,43 @@ describe('createCategorySchema', () => {
       name: 'Mascotas',
       color: '#FF00AA',
       icon: 'icono-inventado',
+      isEssential: 'false',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('transforma isEssential a booleano true', () => {
+    const result = createCategorySchema.safeParse({
+      name: 'Vivienda',
+      color: '#FF00AA',
+      icon: 'home',
+      isEssential: 'true',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.isEssential).toBe(true);
+    }
+  });
+
+  it('transforma isEssential a booleano false', () => {
+    const result = createCategorySchema.safeParse({
+      name: 'Ocio',
+      color: '#FF00AA',
+      icon: 'popcorn',
+      isEssential: 'false',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.isEssential).toBe(false);
+    }
+  });
+
+  it('rechaza un valor de isEssential que no sea "true" ni "false"', () => {
+    const result = createCategorySchema.safeParse({
+      name: 'Mascotas',
+      color: '#FF00AA',
+      icon: 'paw-print',
+      isEssential: 'quizás',
     });
     expect(result.success).toBe(false);
   });
@@ -86,6 +130,7 @@ describe('updateCategorySchema', () => {
       name: 'Mascotas',
       color: '#FF00AA',
       icon: 'paw-print',
+      isEssential: 'false',
     });
     expect(result.success).toBe(false);
   });
@@ -96,6 +141,7 @@ describe('updateCategorySchema', () => {
       name: 'Mascotas',
       color: '#FF00AA',
       icon: 'paw-print',
+      isEssential: 'true',
     });
     expect(result.success).toBe(true);
   });

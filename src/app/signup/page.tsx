@@ -24,9 +24,9 @@ function SubmitButton() {
 }
 
 const STRENGTH_CONFIG = {
-  weak: { label: 'Débil', color: 'bg-red-500', width: 'w-1/3' },
-  medium: { label: 'Media', color: 'bg-yellow-500', width: 'w-2/3' },
-  strong: { label: 'Fuerte', color: 'bg-green-500', width: 'w-full' },
+  weak: { label: 'Débil', color: 'bg-destructive', width: 'w-1/3' },
+  medium: { label: 'Media', color: 'bg-amber-500', width: 'w-2/3' },
+  strong: { label: 'Fuerte', color: 'bg-emerald-500', width: 'w-full' },
 } as const;
 
 function PasswordStrengthMeter({ password }: { password: string }) {
@@ -82,7 +82,7 @@ export default function SignupPage() {
         </CardHeader>
         <CardContent>
           {state.status === 'success' ? (
-            <p role="status" className="text-sm text-green-700">
+            <p role="status" className="text-sm text-emerald-600">
               {state.message}
             </p>
           ) : (
@@ -130,7 +130,7 @@ export default function SignupPage() {
               </div>
 
               {state.status === 'error' && (
-                <p role="alert" className="text-sm text-red-600">
+                <p role="alert" className="text-destructive text-sm">
                   {state.message}
                 </p>
               )}

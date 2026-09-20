@@ -21,7 +21,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       <AppSidebar userEmail={user.email ?? ''} />
       <div className="flex flex-1 flex-col pb-24 md:pb-0">
         <AppTopbar />
-        <main className="flex-1 p-4 md:p-8">{children}</main>
+        <main className="flex-1 overflow-x-hidden p-6 md:p-10">{children}</main>
       </div>
       <div className="from-background pointer-events-none fixed inset-x-0 bottom-0 z-30 h-28 bg-gradient-to-t to-transparent md:hidden" />
       <AppBottomNav />

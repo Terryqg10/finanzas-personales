@@ -1,4 +1,4 @@
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+﻿export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
@@ -52,6 +52,7 @@ export type Database = {
           created_at: string;
           icon: string;
           id: string;
+          is_essential: boolean;
           name: string;
           user_id: string | null;
         };
@@ -60,6 +61,7 @@ export type Database = {
           created_at?: string;
           icon?: string;
           id?: string;
+          is_essential?: boolean;
           name: string;
           user_id?: string | null;
         };
@@ -68,6 +70,7 @@ export type Database = {
           created_at?: string;
           icon?: string;
           id?: string;
+          is_essential?: boolean;
           name?: string;
           user_id?: string | null;
         };
@@ -228,6 +231,7 @@ export type Database = {
           created_at: string;
           notify_email: boolean;
           notify_push: boolean;
+          savings_rate_target: number;
           theme_preference: string;
           updated_at: string;
           user_id: string;
@@ -237,6 +241,7 @@ export type Database = {
           created_at?: string;
           notify_email?: boolean;
           notify_push?: boolean;
+          savings_rate_target?: number;
           theme_preference?: string;
           updated_at?: string;
           user_id: string;
@@ -246,6 +251,7 @@ export type Database = {
           created_at?: string;
           notify_email?: boolean;
           notify_push?: boolean;
+          savings_rate_target?: number;
           theme_preference?: string;
           updated_at?: string;
           user_id?: string;
@@ -299,12 +305,42 @@ export type Database = {
         Returns: {
           amount: number;
           category_color: string;
+          category_id: string;
           category_name: string;
           currency: string;
           description: string;
+          is_essential: boolean;
           next_due_date: string;
           rule_id: string;
           type: string;
+        }[];
+      };
+      get_fixed_expenses: {
+        Args: never;
+        Returns: {
+          amount: number;
+          category_color: string;
+          category_icon: string;
+          category_id: string;
+          category_name: string;
+          currency: string;
+          description: string;
+          frequency: string;
+          is_essential: boolean;
+          next_due_date: string;
+          rule_id: string;
+          status: string;
+        }[];
+      };
+      get_weekend_spending_recommendation: {
+        Args: { p_currency: string };
+        Returns: {
+          discretionary_budget_remaining: number;
+          discretionary_spent: number;
+          essential_spent: number;
+          has_discretionary_budget: boolean;
+          month_income: number;
+          pending_fixed_expenses: number;
         }[];
       };
     };

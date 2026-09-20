@@ -46,12 +46,12 @@ export function TransactionFormFields({
       <div className="space-y-2">
         <Label>Tipo</Label>
         <input type="hidden" name="type" value={type} />
-        <div className="border-border bg-secondary inline-flex rounded-md border p-1">
+        <div className="bg-secondary inline-flex rounded-full p-1">
           <button
             type="button"
             onClick={() => onTypeChange('expense')}
             className={cn(
-              'rounded px-3 py-1.5 text-sm font-medium transition-colors',
+              'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
               type === 'expense'
                 ? 'bg-background text-foreground shadow-xs'
                 : 'text-muted-foreground',
@@ -63,7 +63,7 @@ export function TransactionFormFields({
             type="button"
             onClick={() => onTypeChange('income')}
             className={cn(
-              'rounded px-3 py-1.5 text-sm font-medium transition-colors',
+              'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
               type === 'income'
                 ? 'bg-background text-foreground shadow-xs'
                 : 'text-muted-foreground',

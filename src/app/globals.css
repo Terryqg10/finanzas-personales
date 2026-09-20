@@ -6,23 +6,26 @@
 :root {
   --radius: 0.375rem;
 
-  --background: #fafaf8;
-  --foreground: #1c1c1a;
-  --card: #f5f4f0;
-  --card-foreground: #1c1c1a;
+  /* Estética Financiera Premium / Fintech: fondo gris claro (gray-50),
+     tarjetas blancas puras, tipografía en tonos slate, error en rose. El
+     acento de marca (--primary, teal) y el modo oscuro no cambian. */
+  --background: #f9fafb;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
   --popover: #ffffff;
-  --popover-foreground: #1c1c1a;
+  --popover-foreground: #0f172a;
   --primary: #1f5f5b;
   --primary-foreground: #fafaf8;
-  --secondary: #f0efeb;
-  --secondary-foreground: #1c1c1a;
-  --muted: #f0efeb;
-  --muted-foreground: #6b6a63;
-  --accent: #f0efeb;
-  --accent-foreground: #1c1c1a;
-  --destructive: #b23b3b;
-  --border: #deddd6;
-  --input: #deddd6;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  --destructive: #f43f5e;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
   --ring: #1f5f5b;
 }
 

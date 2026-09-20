@@ -2,6 +2,7 @@ import { BalanceCard } from '@/components/dashboard/balance-card';
 import { BudgetsSection } from '@/components/dashboard/budgets-section';
 import { CategoryBreakdownChart } from '@/components/dashboard/category-breakdown-chart';
 import { MonthlyEvolutionChart } from '@/components/dashboard/monthly-evolution-chart';
+import { RecommendationsSection } from '@/components/dashboard/recommendations-section';
 import { RemindersSection } from '@/components/dashboard/reminders-section';
 import {
   getBalanceSummary,
@@ -9,6 +10,7 @@ import {
   getCategoryBreakdown,
   getMonthlyEvolution,
   getPendingRecurringReminders,
+  getWeekendSpendingRecommendation,
 } from '@/lib/data/dashboard';
 import { getUserSettings } from '@/lib/data/user-settings';
 
@@ -23,22 +25,24 @@ export default async function DashboardPage() {
   const settings = await getUserSettings();
   const { start, end } = currentMonthRange();
 
-  const [balance, categoryBreakdown, monthlyEvolution, budgets, reminders] = await Promise.all([
-    getBalanceSummary(settings.base_currency),
-    getCategoryBreakdown(settings.base_currency, start, end),
-    getMonthlyEvolution(settings.base_currency, 6),
-    getBudgetProgress(settings.base_currency),
-    getPendingRecurringReminders(),
-  ]);
+  const [balance, categoryBreakdown, monthlyEvolution, budgets, reminders, recommendation] =
+    await Promise.all([
+      getBalanceSummary(settings.base_currency),
+      getCategoryBreakdown(settings.base_currency, start, end),
+      getMonthlyEvolution(settings.base_currency, 6),
+      getBudgetProgress(settings.base_currency),
+      getPendingRecurringReminders(),
+      getWeekendSpendingRecommendation(settings.base_currency, settings.savings_rate_target),
+    ]);
 
   const hasAnyData = balance.income > 0 || balance.expense > 0 || balance.otherCurrencyCount > 0;
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+    <div className="space-y-8">
+      <h1 className="text-foreground text-3xl font-bold tracking-tight">Dashboard</h1>
 
       {!hasAnyData ? (
-        <div className="border-border rounded-md border p-8 text-center">
+        <div className="bg-card rounded-2xl p-10 text-center shadow-sm">
           <p className="text-muted-foreground text-sm">
             Todavía no has registrado ningún movimiento. Ve a{' '}
             <span className="text-foreground font-medium">Movimientos</span> para empezar.
@@ -57,6 +61,10 @@ export default async function DashboardPage() {
           </div>
 
           <BudgetsSection budgets={budgets} currency={settings.base_currency} />
+          <RecommendationsSection
+            recommendation={recommendation}
+            currency={settings.base_currency}
+          />
           <RemindersSection reminders={reminders} />
         </>
       )}

@@ -31,6 +31,7 @@ export function CreateCategoryDialog() {
   const [open, setOpen] = useState(false);
   const [color, setColor] = useState<string>(CATEGORY_COLOR_PRESETS[0]);
   const [icon, setIcon] = useState<string>('shapes');
+  const [isEssential, setIsEssential] = useState(false);
   const [state, formAction] = useActionState(createCategory, initialCategoryState);
 
   useEffect(() => {
@@ -50,16 +51,18 @@ export function CreateCategoryDialog() {
           <DialogTitle>Nueva categoría</DialogTitle>
           <DialogDescription>Elige un nombre, un ícono y un color.</DialogDescription>
         </DialogHeader>
-        <form action={formAction} className="space-y-4">
+        <form action={formAction} className="space-y-5">
           <CategoryFormFields
             icon={icon}
             onIconChange={setIcon}
             color={color}
             onColorChange={setColor}
+            isEssential={isEssential}
+            onEssentialChange={setIsEssential}
           />
 
           {state.status === 'error' && (
-            <p role="alert" className="text-sm text-red-600">
+            <p role="alert" className="text-destructive text-sm">
               {state.message}
             </p>
           )}

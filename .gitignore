@@ -40,3 +40,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# scratch: SQL scripts para ejecutar manualmente en el editor de Supabase,
+# no forman parte del código fuente versionado (las migraciones reales
+# viven en supabase/migrations/)
+/Claude outputs/

@@ -42,7 +42,7 @@ export function BaseCurrencyForm({ currentCurrency }: { currentCurrency: string 
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-3">
       <Select value={selection} onValueChange={setSelection} disabled={isPending}>
         <SelectTrigger className="w-56">
           <SelectValue placeholder="Elige una moneda" />

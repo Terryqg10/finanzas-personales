@@ -26,6 +26,7 @@ export const createCategorySchema = z.object({
   name: z.string().trim().min(1, 'El nombre es obligatorio.').max(40, 'Máximo 40 caracteres.'),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Color inválido.'),
   icon: z.enum(categoryIconKeys, { message: 'Ícono inválido.' }),
+  isEssential: z.enum(['true', 'false']).transform((value) => value === 'true'),
 });
 
 export const updateCategorySchema = createCategorySchema.extend({

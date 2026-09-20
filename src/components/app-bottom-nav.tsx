@@ -10,7 +10,7 @@ export function AppBottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="border-border bg-card fixed inset-x-6 bottom-5 z-40 flex items-center justify-around rounded-full border px-2 py-2 shadow-lg md:hidden">
+    <nav className="bg-card fixed inset-x-6 bottom-5 z-40 flex items-center justify-around rounded-full px-2 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] md:hidden">
       {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
         const isActive = pathname === href;
         return (

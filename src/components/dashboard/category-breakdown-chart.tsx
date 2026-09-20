@@ -70,9 +70,9 @@ export function CategoryBreakdownChart({
   }
 
   return (
-    <div className="border-border rounded-md border p-4">
+    <div className="bg-card rounded-2xl p-6 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-sm font-medium">Gasto por categoría</h3>
+        <h3 className="text-foreground text-sm font-semibold">Gasto por categoría</h3>
         <Select value={period} onValueChange={handlePeriodChange}>
           <SelectTrigger className="w-40" size="sm">
             <SelectValue />
@@ -120,7 +120,7 @@ export function CategoryBreakdownChart({
               style={{ backgroundColor: item.categoryColor }}
             />
             <span className="flex-1 truncate">{item.categoryName}</span>
-            <span className="font-mono">{formatMoney(item.total, currency)}</span>
+            <span className="text-foreground font-medium">{formatMoney(item.total, currency)}</span>
           </li>
         ))}
       </ul>

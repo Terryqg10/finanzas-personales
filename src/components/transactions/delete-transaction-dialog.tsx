@@ -57,7 +57,7 @@ export function DeleteTransactionDialog({ transaction }: { transaction: Transact
         <form action={formAction}>
           <input type="hidden" name="id" value={transaction.id} />
           {state.status === 'error' && (
-            <p role="alert" className="mb-4 text-sm text-red-600">
+            <p role="alert" className="text-destructive mb-4 text-sm">
               {state.message}
             </p>
           )}

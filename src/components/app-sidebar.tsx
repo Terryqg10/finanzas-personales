@@ -13,12 +13,12 @@ export function AppSidebar({ userEmail }: { userEmail: string }) {
   const pathname = usePathname();
 
   return (
-    <aside className="border-border bg-card hidden w-60 shrink-0 flex-col border-r md:flex">
-      <div className="border-border border-b px-4 py-4">
-        <p className="text-sm font-semibold tracking-tight">Finanzas Personales</p>
+    <aside className="border-border bg-card hidden w-64 shrink-0 flex-col border-r md:flex">
+      <div className="border-border border-b px-6 py-6">
+        <p className="text-foreground text-base font-bold tracking-tight">Finanzas Personales</p>
       </div>
 
-      <nav className="flex-1 space-y-1 p-2">
+      <nav className="flex-1 space-y-2 p-4">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href;
           return (
@@ -26,7 +26,7 @@ export function AppSidebar({ userEmail }: { userEmail: string }) {
               key={href}
               href={href}
               className={cn(
-                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                'flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors',
                 isActive
                   ? 'bg-secondary text-secondary-foreground'
                   : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground',
@@ -39,7 +39,7 @@ export function AppSidebar({ userEmail }: { userEmail: string }) {
         })}
       </nav>
 
-      <div className="border-border space-y-3 border-t p-3">
+      <div className="border-border space-y-4 border-t p-4">
         <ThemeToggle />
         <p className="text-muted-foreground truncate text-xs">{userEmail}</p>
         <form action={logout}>

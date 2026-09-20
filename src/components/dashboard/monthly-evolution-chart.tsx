@@ -46,8 +46,8 @@ export function MonthlyEvolutionChart({
   });
 
   return (
-    <div className="border-border rounded-md border p-4">
-      <h3 className="mb-4 text-sm font-medium">Evolución mensual</h3>
+    <div className="bg-card rounded-2xl p-6 shadow-sm">
+      <h3 className="text-foreground mb-4 text-sm font-semibold">Evolución mensual</h3>
       {chartData.length === 0 ? (
         <p className="text-muted-foreground py-8 text-center text-sm">
           Todavía no hay suficiente historial.
@@ -59,13 +59,27 @@ export function MonthlyEvolutionChart({
             <XAxis dataKey="label" fontSize={12} />
             <YAxis fontSize={12} width={40} />
             <Tooltip
+              cursor={{ fill: 'var(--muted)', radius: 8 }}
+              contentStyle={{
+                backgroundColor: 'var(--card)',
+                border: 'none',
+                borderRadius: '12px',
+                boxShadow: '0 4px 20px rgba(15, 23, 42, 0.1)',
+                padding: '8px 12px',
+              }}
+              labelStyle={{
+                color: 'var(--foreground)',
+                fontWeight: 600,
+                marginBottom: 4,
+              }}
+              itemStyle={{ color: 'var(--muted-foreground)' }}
               formatter={(value: unknown) =>
                 formatMoney(typeof value === 'number' ? value : 0, currency)
               }
             />
             <Legend />
-            <Bar dataKey="Ingresos" fill="#22C55E" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="Gastos" fill="#EF4444" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="Ingresos" fill="#10B981" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="Gastos" fill="#F43F5E" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       )}

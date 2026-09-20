@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { getRemainingWeekends } from '@/lib/weekends';
 
 export interface BalanceSummary {
   balance: number;
@@ -120,8 +121,10 @@ export interface PendingReminderItem {
   amount: number;
   currency: string;
   type: 'income' | 'expense';
+  categoryId: string;
   categoryName: string;
   categoryColor: string;
+  isEssential: boolean;
   nextDueDate: string;
 }
 
@@ -139,8 +142,67 @@ export async function getPendingRecurringReminders(): Promise<PendingReminderIte
     amount: row.amount,
     currency: row.currency,
     type: row.type as 'income' | 'expense',
+    categoryId: row.category_id,
     categoryName: row.category_name,
     categoryColor: row.category_color,
+    isEssential: row.is_essential,
     nextDueDate: row.next_due_date,
   }));
+}
+
+export interface WeekendSpendingRecommendation {
+  /** Dinero disponible para gasto discrecional en lo que queda del mes. */
+  totalAvailable: number;
+  /** Reparto a partes iguales entre los fines de semana restantes del mes. */
+  weekends: { label: string; amount: number }[];
+  /** % de ahorro real del mes en curso hasta la fecha: (ingresos − gastado) / ingresos. */
+  currentSavingsRate: number;
+  /** % de ahorro objetivo configurado por el usuario en Configuración. */
+  savingsRateTarget: number;
+}
+
+export async function getWeekendSpendingRecommendation(
+  currency: string,
+  savingsRateTarget: number,
+): Promise<WeekendSpendingRecommendation> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .rpc('get_weekend_spending_recommendation', { p_currency: currency })
+    .single();
+
+  if (error || !data) {
+    throw new Error('No se pudo calcular la recomendación de gasto.');
+  }
+
+  const {
+    month_income: monthIncome,
+    essential_spent: essentialSpent,
+    discretionary_spent: discretionarySpent,
+    pending_fixed_expenses: pendingFixedExpenses,
+    discretionary_budget_remaining: discretionaryBudgetRemaining,
+    has_discretionary_budget: hasDiscretionaryBudget,
+  } = data;
+
+  const savingsReserve = monthIncome * (savingsRateTarget / 100);
+  let totalAvailable = Math.max(
+    monthIncome - essentialSpent - discretionarySpent - pendingFixedExpenses - savingsReserve,
+    0,
+  );
+
+  if (hasDiscretionaryBudget) {
+    totalAvailable = Math.min(totalAvailable, discretionaryBudgetRemaining);
+  }
+
+  const weekends = getRemainingWeekends();
+  const perWeekend = weekends.length > 0 ? totalAvailable / weekends.length : totalAvailable;
+
+  const currentSavingsRate =
+    monthIncome > 0 ? ((monthIncome - essentialSpent - discretionarySpent) / monthIncome) * 100 : 0;
+
+  return {
+    totalAvailable,
+    weekends: weekends.map((weekend) => ({ label: weekend.label, amount: perWeekend })),
+    currentSavingsRate,
+    savingsRateTarget,
+  };
 }

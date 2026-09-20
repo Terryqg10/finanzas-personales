@@ -33,6 +33,7 @@ export function EditCategoryDialog({ category }: { category: Category }) {
   const [open, setOpen] = useState(false);
   const [color, setColor] = useState<string>(category.color);
   const [icon, setIcon] = useState<string>(category.icon);
+  const [isEssential, setIsEssential] = useState(category.is_essential);
   const [state, formAction] = useActionState(updateCategory, initialCategoryState);
 
   useEffect(() => {
@@ -60,7 +61,7 @@ export function EditCategoryDialog({ category }: { category: Category }) {
           <DialogTitle>Editar categoría</DialogTitle>
           <DialogDescription>Cambia el nombre, el ícono o el color.</DialogDescription>
         </DialogHeader>
-        <form action={formAction} className="space-y-4">
+        <form action={formAction} className="space-y-5">
           <input type="hidden" name="id" value={category.id} />
           <CategoryFormFields
             defaultName={category.name}
@@ -68,10 +69,12 @@ export function EditCategoryDialog({ category }: { category: Category }) {
             onIconChange={setIcon}
             color={color}
             onColorChange={setColor}
+            isEssential={isEssential}
+            onEssentialChange={setIsEssential}
           />
 
           {state.status === 'error' && (
-            <p role="alert" className="text-sm text-red-600">
+            <p role="alert" className="text-destructive text-sm">
               {state.message}
             </p>
           )}

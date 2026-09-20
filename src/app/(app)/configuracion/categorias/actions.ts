@@ -17,6 +17,7 @@ export async function createCategory(
     name: formData.get('name'),
     color: formData.get('color'),
     icon: formData.get('icon'),
+    isEssential: formData.get('isEssential'),
   });
 
   if (!parsed.success) {
@@ -37,6 +38,7 @@ export async function createCategory(
     name: parsed.data.name,
     color: parsed.data.color,
     icon: parsed.data.icon,
+    is_essential: parsed.data.isEssential,
   });
 
   if (error) {
@@ -59,6 +61,7 @@ export async function updateCategory(
     name: formData.get('name'),
     color: formData.get('color'),
     icon: formData.get('icon'),
+    isEssential: formData.get('isEssential'),
   });
 
   if (!parsed.success) {
@@ -80,6 +83,7 @@ export async function updateCategory(
       name: parsed.data.name,
       color: parsed.data.color,
       icon: parsed.data.icon,
+      is_essential: parsed.data.isEssential,
     })
     .eq('id', parsed.data.id)
     .select('id');
