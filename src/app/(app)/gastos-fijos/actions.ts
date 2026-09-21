@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
 
 import { createClient } from '@/lib/supabase/server';
 import {
@@ -28,17 +29,16 @@ export async function createFixedExpense(
     return { status: 'error', message: parsed.error.issues[0]?.message ?? 'Datos inválidos.' };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const userId = (await headers()).get('x-user-id');
 
-  if (!user) {
+  if (!userId) {
     return { status: 'error', message: 'Tu sesión ha expirado. Inicia sesión de nuevo.' };
   }
 
+  const supabase = await createClient();
+
   const { error } = await supabase.from('recurring_rules').insert({
-    user_id: user.id,
+    user_id: userId,
     type: 'expense',
     description: parsed.data.description,
     amount: parsed.data.amount,
@@ -75,14 +75,13 @@ export async function updateFixedExpense(
     return { status: 'error', message: parsed.error.issues[0]?.message ?? 'Datos inválidos.' };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const userId = (await headers()).get('x-user-id');
 
-  if (!user) {
+  if (!userId) {
     return { status: 'error', message: 'Tu sesión ha expirado. Inicia sesión de nuevo.' };
   }
+
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('recurring_rules')

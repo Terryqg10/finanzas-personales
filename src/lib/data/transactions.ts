@@ -12,10 +12,12 @@ export type TransactionWithCategory = Transaction & {
   categories: { name: string; color: string; icon: string } | null;
 };
 
-export function formatShortDate(isoDate: string): string {
-  const date = new Date(`${isoDate}T00:00:00`);
-  return new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short' }).format(date);
-}
+// `formatShortDate` vive en `@/lib/format-date` (sin dependencias de
+// servidor) para poder importarse desde Client Components sin arrastrar
+// `createClient`/`next/headers` al bundle del navegador. Se re-exporta aquí
+// por compatibilidad con el resto del código de servidor que ya la importaba
+// desde este módulo.
+export { formatShortDate } from '@/lib/format-date';
 
 /**
  * Listado mínimo para verificar visualmente que un movimiento se creó

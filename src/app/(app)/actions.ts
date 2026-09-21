@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
 
 import { getUserSettings } from '@/lib/data/user-settings';
 import { getExchangeRate } from '@/lib/exchange-rate';
@@ -29,6 +30,12 @@ export async function confirmRecurringReminder(
     return { status: 'error', message: 'Identificador inválido.' };
   }
 
+  const userId = (await headers()).get('x-user-id');
+
+  if (!userId) {
+    return { status: 'error', message: 'Tu sesión ha expirado. Inicia sesión de nuevo.' };
+  }
+
   let supabase;
   try {
     supabase = await createClient();
@@ -37,21 +44,13 @@ export async function confirmRecurringReminder(
     return { status: 'error', message };
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { status: 'error', message: 'Tu sesión ha expirado. Inicia sesión de nuevo.' };
-  }
-
   const { data: rule, error: ruleError } = await supabase
     .from('recurring_rules')
     .select(
       'id, category_id, type, description, amount, currency, frequency, next_due_date, status',
     )
     .eq('id', parsed.data.ruleId)
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .maybeSingle();
 
   if (ruleError || !rule) {
@@ -79,7 +78,7 @@ export async function confirmRecurringReminder(
   }
 
   const { error: insertError } = await supabase.from('transactions').insert({
-    user_id: user.id,
+    user_id: userId,
     category_id: rule.category_id,
     type: rule.type,
     description: rule.description,
@@ -142,20 +141,19 @@ export async function skipRecurringReminder(
     return { status: 'error', message: 'Identificador inválido.' };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const userId = (await headers()).get('x-user-id');
 
-  if (!user) {
+  if (!userId) {
     return { status: 'error', message: 'Tu sesión ha expirado. Inicia sesión de nuevo.' };
   }
+
+  const supabase = await createClient();
 
   const { data: rule, error: ruleError } = await supabase
     .from('recurring_rules')
     .select('id, frequency, next_due_date')
     .eq('id', parsed.data.ruleId)
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .maybeSingle();
 
   if (ruleError || !rule) {

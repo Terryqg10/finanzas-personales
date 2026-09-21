@@ -28,9 +28,19 @@ function SubmitButton() {
   );
 }
 
-export function DeleteFixedExpenseDialog({ fixedExpense }: { fixedExpense: FixedExpense }) {
+export function DeleteFixedExpenseDialog({
+  fixedExpense,
+  onDismiss,
+}: {
+  fixedExpense: FixedExpense;
+  /**
+   * Callback opcional para quitar esta fila de la lista optimista del padre
+   * en cuanto se confirma el borrado, sin esperar la respuesta del servidor.
+   */
+  onDismiss?: (ruleId: string) => void;
+}) {
   const [open, setOpen] = useState(false);
-  const [state, formAction] = useActionState(deleteFixedExpense, initialFixedExpenseState);
+  const [state, formActionBase] = useActionState(deleteFixedExpense, initialFixedExpenseState);
 
   useEffect(() => {
     if (state.status !== 'success') return;
@@ -38,6 +48,11 @@ export function DeleteFixedExpenseDialog({ fixedExpense }: { fixedExpense: Fixed
     // eslint-disable-next-line react-hooks/set-state-in-effect -- cerrar el modal es una reacción legítima al resultado de la Server Action, no puede calcularse durante el render
     setOpen(false);
   }, [state]);
+
+  async function formAction(formData: FormData) {
+    onDismiss?.(fixedExpense.ruleId);
+    formActionBase(formData);
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

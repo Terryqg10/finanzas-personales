@@ -1,7 +1,7 @@
 'use client';
 
 import { Check, SkipForward } from 'lucide-react';
-import { useActionState, useEffect } from 'react';
+import { useActionState, useEffect, useOptimistic } from 'react';
 import { useFormStatus } from 'react-dom';
 import { toast } from 'sonner';
 
@@ -45,12 +45,18 @@ function SkipButton() {
   );
 }
 
-function ReminderRow({ reminder }: { reminder: PendingReminderItem }) {
-  const [confirmState, confirmAction] = useActionState(
+function ReminderRow({
+  reminder,
+  onDismiss,
+}: {
+  reminder: PendingReminderItem;
+  onDismiss: (ruleId: string) => void;
+}) {
+  const [confirmState, confirmActionBase] = useActionState(
     confirmRecurringReminder,
     initialReminderState,
   );
-  const [skipState, skipAction] = useActionState(skipRecurringReminder, initialReminderState);
+  const [skipState, skipActionBase] = useActionState(skipRecurringReminder, initialReminderState);
 
   useEffect(() => {
     if (confirmState.status === 'success') {
@@ -67,6 +73,20 @@ function ReminderRow({ reminder }: { reminder: PendingReminderItem }) {
       toast.error(skipState.message ?? 'No se pudo omitir el recordatorio.');
     }
   }, [skipState]);
+
+  // Cada wrapper marca la fila como descartada al instante (la lista
+  // optimista del padre la oculta de inmediato) y solo después dispara la
+  // Server Action real. Si esta falla, React revierte la actualización
+  // optimista del padre y la fila vuelve a aparecer.
+  async function confirmAction(formData: FormData) {
+    onDismiss(reminder.ruleId);
+    confirmActionBase(formData);
+  }
+
+  async function skipAction(formData: FormData) {
+    onDismiss(reminder.ruleId);
+    skipActionBase(formData);
+  }
 
   return (
     <li className="flex items-center gap-3 text-sm">
@@ -91,6 +111,12 @@ function ReminderRow({ reminder }: { reminder: PendingReminderItem }) {
 }
 
 export function RemindersSection({ reminders }: { reminders: PendingReminderItem[] }) {
+  const [optimisticReminders, dismissReminder] = useOptimistic(
+    reminders,
+    (state, dismissedRuleId: string) =>
+      state.filter((reminder) => reminder.ruleId !== dismissedRuleId),
+  );
+
   return (
     <div className="bg-card rounded-2xl p-6 shadow-sm">
       <h3 className="text-foreground mb-1 text-sm font-semibold">
@@ -100,12 +126,12 @@ export function RemindersSection({ reminders }: { reminders: PendingReminderItem
         Nunca se crean solos: confirma cada uno para registrarlo, u omite este mes si no
         corresponde.
       </p>
-      {reminders.length === 0 ? (
+      {optimisticReminders.length === 0 ? (
         <p className="text-muted-foreground text-sm">No hay recordatorios pendientes.</p>
       ) : (
         <ul className="space-y-3">
-          {reminders.map((reminder) => (
-            <ReminderRow key={reminder.ruleId} reminder={reminder} />
+          {optimisticReminders.map((reminder) => (
+            <ReminderRow key={reminder.ruleId} reminder={reminder} onDismiss={dismissReminder} />
           ))}
         </ul>
       )}

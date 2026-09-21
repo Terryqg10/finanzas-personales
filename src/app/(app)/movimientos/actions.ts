@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
 
 import { getUserSettings } from '@/lib/data/user-settings';
 import { getExchangeRate } from '@/lib/exchange-rate';
@@ -29,20 +30,18 @@ export async function createTransaction(
     return { status: 'error', message: parsed.error.issues[0]?.message ?? 'Datos inválidos.' };
   }
 
+  const userId = (await headers()).get('x-user-id');
+
+  if (!userId) {
+    return { status: 'error', message: 'Tu sesión ha expirado. Inicia sesión de nuevo.' };
+  }
+
   let supabase;
   try {
     supabase = await createClient();
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Error de configuración del servidor.';
     return { status: 'error', message };
-  }
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { status: 'error', message: 'Tu sesión ha expirado. Inicia sesión de nuevo.' };
   }
 
   let settings;
@@ -62,7 +61,7 @@ export async function createTransaction(
   }
 
   const { error } = await supabase.from('transactions').insert({
-    user_id: user.id,
+    user_id: userId,
     category_id: parsed.data.categoryId,
     type: parsed.data.type,
     description: parsed.data.description,
@@ -112,20 +111,18 @@ export async function updateTransaction(
     return { status: 'error', message: parsed.error.issues[0]?.message ?? 'Datos inválidos.' };
   }
 
+  const userId = (await headers()).get('x-user-id');
+
+  if (!userId) {
+    return { status: 'error', message: 'Tu sesión ha expirado. Inicia sesión de nuevo.' };
+  }
+
   let supabase;
   try {
     supabase = await createClient();
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Error de configuración del servidor.';
     return { status: 'error', message };
-  }
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { status: 'error', message: 'Tu sesión ha expirado. Inicia sesión de nuevo.' };
   }
 
   const { data, error } = await supabase
@@ -166,20 +163,18 @@ export async function deleteTransaction(
     return { status: 'error', message: parsed.error.issues[0]?.message ?? 'Datos inválidos.' };
   }
 
+  const userId = (await headers()).get('x-user-id');
+
+  if (!userId) {
+    return { status: 'error', message: 'Tu sesión ha expirado. Inicia sesión de nuevo.' };
+  }
+
   let supabase;
   try {
     supabase = await createClient();
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Error de configuración del servidor.';
     return { status: 'error', message };
-  }
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { status: 'error', message: 'Tu sesión ha expirado. Inicia sesión de nuevo.' };
   }
 
   const { data, error } = await supabase

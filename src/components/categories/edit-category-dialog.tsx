@@ -1,6 +1,6 @@
 'use client';
 
-import { Pencil } from 'lucide-react';
+import { Loader2, Pencil } from 'lucide-react';
 import { useActionState, useEffect, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { toast } from 'sonner';
@@ -24,6 +24,7 @@ function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
+      {pending && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
       {pending ? 'Guardando…' : 'Guardar cambios'}
     </Button>
   );

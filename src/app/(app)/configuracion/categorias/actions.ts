@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
 
 import { createClient } from '@/lib/supabase/server';
 import {
@@ -24,17 +25,16 @@ export async function createCategory(
     return { status: 'error', message: parsed.error.issues[0]?.message ?? 'Datos inválidos.' };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const userId = (await headers()).get('x-user-id');
 
-  if (!user) {
+  if (!userId) {
     return { status: 'error', message: 'Tu sesión ha expirado. Inicia sesión de nuevo.' };
   }
 
+  const supabase = await createClient();
+
   const { error } = await supabase.from('categories').insert({
-    user_id: user.id,
+    user_id: userId,
     name: parsed.data.name,
     color: parsed.data.color,
     icon: parsed.data.icon,
@@ -68,14 +68,13 @@ export async function updateCategory(
     return { status: 'error', message: parsed.error.issues[0]?.message ?? 'Datos inválidos.' };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const userId = (await headers()).get('x-user-id');
 
-  if (!user) {
+  if (!userId) {
     return { status: 'error', message: 'Tu sesión ha expirado. Inicia sesión de nuevo.' };
   }
+
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('categories')

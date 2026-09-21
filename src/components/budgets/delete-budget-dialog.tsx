@@ -28,9 +28,19 @@ function SubmitButton() {
   );
 }
 
-export function DeleteBudgetDialog({ budget }: { budget: BudgetProgressItem }) {
+export function DeleteBudgetDialog({
+  budget,
+  onDismiss,
+}: {
+  budget: BudgetProgressItem;
+  /**
+   * Callback opcional para quitar esta fila de la lista optimista del padre
+   * en cuanto se confirma el borrado, sin esperar la respuesta del servidor.
+   */
+  onDismiss?: (budgetId: string) => void;
+}) {
   const [open, setOpen] = useState(false);
-  const [state, formAction] = useActionState(deleteBudget, initialBudgetState);
+  const [state, formActionBase] = useActionState(deleteBudget, initialBudgetState);
 
   useEffect(() => {
     if (state.status !== 'success') return;
@@ -38,6 +48,11 @@ export function DeleteBudgetDialog({ budget }: { budget: BudgetProgressItem }) {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- cerrar el modal es una reacción legítima al resultado de la Server Action, no puede calcularse durante el render
     setOpen(false);
   }, [state]);
+
+  async function formAction(formData: FormData) {
+    onDismiss?.(budget.budgetId);
+    formActionBase(formData);
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
