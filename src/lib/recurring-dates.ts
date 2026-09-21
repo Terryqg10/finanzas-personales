@@ -2,6 +2,31 @@ import type { Database } from '@/types/supabase';
 
 type RecurringFrequency = Database['public']['Enums']['recurring_frequency'];
 
+// Grupos de captura simples (no nombrados): el target ES2017 del proyecto no
+// soporta grupos nombrados `(?<year>...)`, que requieren ES2018+.
+const ISO_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/**
+ * Parsea una fecha `YYYY-MM-DD` a sus componentes numéricos. A diferencia de
+ * `.split('-').map(Number)`, valida el formato explícitamente en vez de
+ * confiar en que el array tenga siempre 3 posiciones (TypeScript en modo
+ * estricto, con `noUncheckedIndexedAccess`, no puede garantizarlo sobre un
+ * `number[]` genérico), y lanza un error descriptivo ante cualquier fecha
+ * malformada en vez de propagar un `NaN` silencioso hacia `Date`.
+ */
+function parseIsoDate(isoDate: string): { year: number; month: number; day: number } {
+  const match = ISO_DATE_PATTERN.exec(isoDate);
+  const year = match?.[1];
+  const month = match?.[2];
+  const day = match?.[3];
+
+  if (year === undefined || month === undefined || day === undefined) {
+    throw new Error(`Fecha inválida: "${isoDate}" no tiene el formato YYYY-MM-DD.`);
+  }
+
+  return { year: Number(year), month: Number(month), day: Number(day) };
+}
+
 function toIsoDate(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -38,7 +63,7 @@ function addMonthsClamped(
  * 29 de febrero cuando corresponda).
  */
 export function advanceDueDate(currentDueDate: string, frequency: RecurringFrequency): string {
-  const [year, month, day] = currentDueDate.split('-').map(Number);
+  const { year, month, day } = parseIsoDate(currentDueDate);
 
   if (frequency === 'weekly') {
     return toIsoDate(new Date(year, month - 1, day + 7));

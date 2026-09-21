@@ -5,6 +5,7 @@ import {
   BarChart,
   CartesianGrid,
   Legend,
+  Rectangle,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -59,7 +60,7 @@ export function MonthlyEvolutionChart({
             <XAxis dataKey="label" fontSize={12} />
             <YAxis fontSize={12} width={40} />
             <Tooltip
-              cursor={{ fill: 'var(--muted)', radius: 8 }}
+              cursor={<Rectangle radius={8} className="fill-foreground/5" />}
               contentStyle={{
                 backgroundColor: 'var(--card)',
                 border: 'none',
