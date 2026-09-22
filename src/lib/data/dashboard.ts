@@ -28,6 +28,41 @@ export async function getBalanceSummary(currency: string): Promise<BalanceSummar
   };
 }
 
+export interface PeriodSummary {
+  income: number;
+  expense: number;
+  remaining: number;
+  currency: string;
+}
+
+/**
+ * A diferencia de `getBalanceSummary` (histórico total, sin fecha), esta
+ * función acota a un rango de fechas arbitrario — la usa la tarjeta
+ * "Resumen del mes" del Dashboard para poder consultar cualquier mes, no
+ * solo el saldo acumulado desde siempre.
+ */
+export async function getPeriodSummary(
+  currency: string,
+  start: string,
+  end: string,
+): Promise<PeriodSummary> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .rpc('get_period_summary', { p_currency: currency, p_start: start, p_end: end })
+    .single();
+
+  if (error || !data) {
+    throw new Error('No se pudo calcular el resumen del mes.');
+  }
+
+  return {
+    income: data.income,
+    expense: data.expense,
+    remaining: data.income - data.expense,
+    currency,
+  };
+}
+
 export interface CategoryBreakdownItem {
   categoryId: string;
   categoryName: string;

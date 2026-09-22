@@ -300,6 +300,13 @@ export type Database = {
           month: string;
         }[];
       };
+      get_period_summary: {
+        Args: { p_currency: string; p_end: string; p_start: string };
+        Returns: {
+          expense: number;
+          income: number;
+        }[];
+      };
       get_pending_recurring_reminders: {
         Args: never;
         Returns: {

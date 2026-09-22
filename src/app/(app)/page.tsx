@@ -2,14 +2,17 @@ import { BalanceCard } from '@/components/dashboard/balance-card';
 import { BudgetsSection } from '@/components/dashboard/budgets-section';
 import { CategoryBreakdownChart } from '@/components/dashboard/category-breakdown-chart';
 import { MonthlyEvolutionChart } from '@/components/dashboard/monthly-evolution-chart';
+import { MonthlySummaryCard } from '@/components/dashboard/monthly-summary-card';
 import { RecommendationsSection } from '@/components/dashboard/recommendations-section';
 import { RemindersSection } from '@/components/dashboard/reminders-section';
+import { getMonthRange } from '@/lib/date-range';
 import {
   getBalanceSummary,
   getBudgetProgress,
   getCategoryBreakdown,
   getMonthlyEvolution,
   getPendingRecurringReminders,
+  getPeriodSummary,
   getWeekendSpendingRecommendation,
 } from '@/lib/data/dashboard';
 import { getUserSettings } from '@/lib/data/user-settings';
@@ -21,19 +24,37 @@ function currentMonthRange(): { start: string; end: string } {
   return { start, end };
 }
 
+function currentYearMonth(): string {
+  return new Date().toISOString().slice(0, 7);
+}
+
 export default async function DashboardPage() {
   const settings = await getUserSettings();
   const { start, end } = currentMonthRange();
+  const currentMonth = currentYearMonth();
+  const currentMonthFullRange = getMonthRange(currentMonth);
 
-  const [balance, categoryBreakdown, monthlyEvolution, budgets, reminders, recommendation] =
-    await Promise.all([
-      getBalanceSummary(settings.base_currency),
-      getCategoryBreakdown(settings.base_currency, start, end),
-      getMonthlyEvolution(settings.base_currency, 6),
-      getBudgetProgress(settings.base_currency),
-      getPendingRecurringReminders(),
-      getWeekendSpendingRecommendation(settings.base_currency, settings.savings_rate_target),
-    ]);
+  const [
+    balance,
+    periodSummary,
+    categoryBreakdown,
+    monthlyEvolution,
+    budgets,
+    reminders,
+    recommendation,
+  ] = await Promise.all([
+    getBalanceSummary(settings.base_currency),
+    getPeriodSummary(
+      settings.base_currency,
+      currentMonthFullRange.start,
+      currentMonthFullRange.end,
+    ),
+    getCategoryBreakdown(settings.base_currency, start, end),
+    getMonthlyEvolution(settings.base_currency, 6),
+    getBudgetProgress(settings.base_currency),
+    getPendingRecurringReminders(),
+    getWeekendSpendingRecommendation(settings.base_currency, settings.savings_rate_target),
+  ]);
 
   const hasAnyData = balance.income > 0 || balance.expense > 0 || balance.otherCurrencyCount > 0;
 
@@ -51,6 +72,12 @@ export default async function DashboardPage() {
       ) : (
         <>
           <BalanceCard summary={balance} />
+
+          <MonthlySummaryCard
+            initialData={periodSummary}
+            initialMonth={currentMonth}
+            currency={settings.base_currency}
+          />
 
           <div className="grid gap-4 md:grid-cols-2">
             <CategoryBreakdownChart
