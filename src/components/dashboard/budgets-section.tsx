@@ -32,15 +32,15 @@ export function BudgetsSection({
             );
             return (
               <li key={budget.budgetId}>
-                <div className="mb-1 flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-2">
+                <div className="mb-1 flex items-center justify-between gap-4 text-sm">
+                  <span className="flex min-w-0 items-center gap-2">
                     <span
-                      className="size-2 rounded-full"
+                      className="size-2 shrink-0 rounded-full"
                       style={{ backgroundColor: budget.categoryColor }}
                     />
-                    {budget.categoryName}
+                    <span className="truncate">{budget.categoryName}</span>
                   </span>
-                  <span className="text-muted-foreground font-medium">
+                  <span className="text-muted-foreground shrink-0 font-medium">
                     {formatMoney(budget.spent, currency)} /{' '}
                     {formatMoney(budget.monthlyLimit, currency)}
                   </span>

@@ -39,7 +39,7 @@ export default async function ConfiguracionPage() {
 
       <Link
         href="/configuracion/categorias"
-        className="bg-card flex items-center justify-between rounded-2xl px-6 py-4 text-sm font-medium shadow-sm transition-shadow hover:shadow-md"
+        className="bg-card flex items-center justify-between gap-4 rounded-2xl px-6 py-4 text-sm font-medium shadow-sm transition-shadow hover:shadow-md"
       >
         Categorías
         <span className="text-muted-foreground">→</span>

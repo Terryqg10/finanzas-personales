@@ -19,9 +19,11 @@ export function RecommendationsSection({
       <h3 className="text-foreground mb-4 text-sm font-semibold">Recomendaciones</h3>
 
       <div className="mb-6 space-y-2">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Ahorro este mes</span>
-          <span className={cn('font-medium', onTrack ? 'text-emerald-600' : 'text-foreground')}>
+        <div className="flex items-center justify-between gap-4 text-sm">
+          <span className="text-muted-foreground shrink-0">Ahorro este mes</span>
+          <span
+            className={cn('shrink-0 font-medium', onTrack ? 'text-emerald-600' : 'text-foreground')}
+          >
             {currentSavingsRate.toFixed(1)}% · objetivo {savingsRateTarget}%
           </span>
         </div>
@@ -51,10 +53,10 @@ export function RecommendationsSection({
             {weekends.map((weekend) => (
               <li
                 key={weekend.label}
-                className="bg-secondary flex items-center justify-between rounded-xl px-4 py-2.5 text-sm"
+                className="bg-secondary flex items-center justify-between gap-4 rounded-xl px-4 py-2.5 text-sm"
               >
-                <span>{weekend.label}</span>
-                <span className="text-foreground font-medium">
+                <span className="min-w-0 truncate">{weekend.label}</span>
+                <span className="text-foreground shrink-0 font-medium">
                   {formatMoney(weekend.amount, currency)}
                 </span>
               </li>

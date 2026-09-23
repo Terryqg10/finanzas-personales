@@ -71,7 +71,7 @@ export function CategoryBreakdownChart({
 
   return (
     <div className="bg-card rounded-2xl p-6 shadow-sm">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <h3 className="text-foreground text-sm font-semibold">Gasto por categoría</h3>
         <Select value={period} onValueChange={handlePeriodChange}>
           <SelectTrigger className="w-40" size="sm">

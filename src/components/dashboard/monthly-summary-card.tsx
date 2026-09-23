@@ -48,7 +48,7 @@ export function MonthlySummaryCard({
 
   return (
     <div className="bg-card rounded-2xl p-6 shadow-sm">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <h3 className="text-foreground text-sm font-semibold">Resumen del mes</h3>
         <input
           type="month"
