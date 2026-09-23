@@ -49,7 +49,7 @@ export function SavingsRateForm({ currentRate }: { currentRate: number }) {
         />
         <span className="text-muted-foreground shrink-0 text-sm">%</span>
       </div>
-      <Button type="button" size="sm" onClick={handleSave} disabled={isPending}>
+      <Button type="button" onClick={handleSave} disabled={isPending}>
         {isPending ? 'Guardando…' : 'Guardar'}
       </Button>
     </div>

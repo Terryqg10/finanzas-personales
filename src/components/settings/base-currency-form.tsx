@@ -55,7 +55,7 @@ export function BaseCurrencyForm({ currentCurrency }: { currentCurrency: string 
           ))}
         </SelectContent>
       </Select>
-      <Button type="button" size="sm" onClick={handleSave} disabled={isPending}>
+      <Button type="button" onClick={handleSave} disabled={isPending}>
         {isPending ? 'Guardando…' : 'Guardar'}
       </Button>
     </div>
