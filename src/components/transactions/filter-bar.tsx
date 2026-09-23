@@ -111,7 +111,7 @@ export function FilterBar({ categories }: { categories: Category[] }) {
 
       <div className="space-y-2">
         <Label>Categorías</Label>
-        <div className="flex flex-wrap gap-x-2 gap-y-2.5">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {categories.map((category) => {
             const isSelected = selectedCategories.includes(category.id);
             return (
@@ -120,7 +120,7 @@ export function FilterBar({ categories }: { categories: Category[] }) {
                 type="button"
                 onClick={() => toggleCategory(category.id)}
                 className={cn(
-                  'rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors',
+                  'min-w-0 truncate rounded-full border px-3.5 py-1.5 text-center text-xs font-medium transition-colors',
                   isSelected
                     ? 'border-transparent text-white'
                     : 'border-border text-muted-foreground hover:bg-secondary/60',
