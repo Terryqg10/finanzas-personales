@@ -58,7 +58,7 @@ function FixedExpenseRow({
       </div>
 
       <div className="flex shrink-0 items-center justify-between gap-2 md:justify-end md:gap-4">
-        <span className="text-foreground shrink-0 text-sm font-medium">
+        <span className="shrink-0 text-sm font-medium text-rose-500">
           {formatMoney(fixedExpense.amount, fixedExpense.currency)}
         </span>
 

@@ -9,6 +9,7 @@ import { confirmRecurringReminder, skipRecurringReminder } from '@/app/(app)/act
 import { Button } from '@/components/ui/button';
 import type { PendingReminderItem } from '@/lib/data/dashboard';
 import { formatMoney } from '@/lib/format-money';
+import { cn } from '@/lib/utils';
 import { initialReminderState } from '@/lib/validations/recurring-reminder';
 
 function ConfirmButton() {
@@ -95,7 +96,12 @@ function ReminderRow({
         style={{ backgroundColor: reminder.categoryColor }}
       />
       <span className="flex-1 truncate">{reminder.description}</span>
-      <span className="text-foreground font-medium">
+      <span
+        className={cn(
+          'font-medium',
+          reminder.type === 'income' ? 'text-emerald-600' : 'text-rose-500',
+        )}
+      >
         {formatMoney(reminder.amount, reminder.currency)}
       </span>
       <form action={skipAction}>

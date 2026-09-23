@@ -55,7 +55,7 @@ export function TransactionsList({
             <p
               className={cn(
                 'shrink-0 text-sm font-medium',
-                tx.type === 'income' ? 'text-emerald-600' : 'text-foreground',
+                tx.type === 'income' ? 'text-emerald-600' : 'text-rose-500',
               )}
             >
               {tx.type === 'income' ? '+' : '-'}
