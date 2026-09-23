@@ -57,7 +57,7 @@ export function FilterBar({ categories }: { categories: Category[] }) {
 
   return (
     <div className="bg-card space-y-4 rounded-2xl p-6 shadow-sm">
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <div className="min-w-0 space-y-1">
           <Label htmlFor="from">Desde</Label>
           <Input id="from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
@@ -109,9 +109,9 @@ export function FilterBar({ categories }: { categories: Category[] }) {
         </div>
       </div>
 
-      <div className="space-y-1">
+      <div className="space-y-2">
         <Label>Categorías</Label>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-x-2 gap-y-2.5">
           {categories.map((category) => {
             const isSelected = selectedCategories.includes(category.id);
             return (
@@ -120,7 +120,7 @@ export function FilterBar({ categories }: { categories: Category[] }) {
                 type="button"
                 onClick={() => toggleCategory(category.id)}
                 className={cn(
-                  'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
+                  'rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors',
                   isSelected
                     ? 'border-transparent text-white'
                     : 'border-border text-muted-foreground hover:bg-secondary/60',
