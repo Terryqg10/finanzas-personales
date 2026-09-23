@@ -1,3 +1,5 @@
+import { AlertTriangle } from 'lucide-react';
+
 import type { BudgetProgressItem } from '@/lib/data/dashboard';
 import { formatMoney } from '@/lib/format-money';
 import { cn } from '@/lib/utils';
@@ -6,6 +8,31 @@ function progressColor(percentage: number, alertThreshold: number): string {
   if (percentage >= 100) return 'bg-destructive';
   if (percentage >= alertThreshold) return 'bg-amber-500';
   return 'bg-primary';
+}
+
+/**
+ * Mensaje de alerta bajo la barra de progreso, según qué tan cerca (o por
+ * encima) del límite está el gasto. `null` cuando el presupuesto va bien
+ * (por debajo del umbral de alerta configurado por el usuario) y no hace
+ * falta mostrar nada.
+ */
+function budgetAlert(budget: BudgetProgressItem): { message: string; className: string } | null {
+  if (budget.spent >= budget.monthlyLimit) {
+    return {
+      message: `Sobrepasaste tu presupuesto de ${budget.categoryName}.`,
+      className: 'text-destructive',
+    };
+  }
+
+  const percentage = (budget.spent / budget.monthlyLimit) * 100;
+  if (percentage >= budget.alertThreshold) {
+    return {
+      message: `Te estás acercando al límite de ${budget.categoryName}.`,
+      className: 'text-amber-600',
+    };
+  }
+
+  return null;
 }
 
 export function BudgetsSection({
@@ -30,6 +57,7 @@ export function BudgetsSection({
               100,
               Math.round((budget.spent / budget.monthlyLimit) * 100),
             );
+            const alert = budgetAlert(budget);
             return (
               <li key={budget.budgetId}>
                 <div className="mb-1 flex items-center justify-between gap-4 text-sm">
@@ -54,6 +82,12 @@ export function BudgetsSection({
                     style={{ width: `${percentage}%` }}
                   />
                 </div>
+                {alert && (
+                  <p className={cn('mt-1.5 flex items-center gap-1.5 text-xs', alert.className)}>
+                    <AlertTriangle size={12} className="shrink-0" />
+                    <span>{alert.message}</span>
+                  </p>
+                )}
               </li>
             );
           })}
