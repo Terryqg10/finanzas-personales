@@ -42,9 +42,9 @@ export function BaseCurrencyForm({ currentCurrency }: { currentCurrency: string 
   }
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex flex-wrap items-center gap-3">
       <Select value={selection} onValueChange={setSelection} disabled={isPending}>
-        <SelectTrigger className="w-56">
+        <SelectTrigger className="w-full min-w-0 flex-1 sm:w-56 sm:flex-none">
           <SelectValue placeholder="Elige una moneda" />
         </SelectTrigger>
         <SelectContent>
@@ -55,7 +55,7 @@ export function BaseCurrencyForm({ currentCurrency }: { currentCurrency: string 
           ))}
         </SelectContent>
       </Select>
-      <Button type="button" onClick={handleSave} disabled={isPending}>
+      <Button type="button" className="shrink-0" onClick={handleSave} disabled={isPending}>
         {isPending ? 'Guardando…' : 'Guardar'}
       </Button>
     </div>

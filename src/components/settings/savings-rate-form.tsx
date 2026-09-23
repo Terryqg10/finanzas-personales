@@ -34,8 +34,8 @@ export function SavingsRateForm({ currentRate }: { currentRate: number }) {
   }
 
   return (
-    <div className="flex items-center gap-3">
-      <div className="border-input focus-within:border-ring focus-within:ring-ring/50 flex h-10 w-28 items-center gap-1 rounded-xl border bg-transparent px-4 shadow-xs focus-within:ring-[3px]">
+    <div className="flex flex-wrap items-center gap-3">
+      <div className="border-input focus-within:border-ring focus-within:ring-ring/50 flex h-10 w-28 shrink-0 items-center gap-1 rounded-xl border bg-transparent px-4 shadow-xs focus-within:ring-[3px]">
         <input
           type="number"
           min={0}
@@ -49,7 +49,7 @@ export function SavingsRateForm({ currentRate }: { currentRate: number }) {
         />
         <span className="text-muted-foreground shrink-0 text-sm">%</span>
       </div>
-      <Button type="button" onClick={handleSave} disabled={isPending}>
+      <Button type="button" className="shrink-0" onClick={handleSave} disabled={isPending}>
         {isPending ? 'Guardando…' : 'Guardar'}
       </Button>
     </div>

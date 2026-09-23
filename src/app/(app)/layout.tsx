@@ -19,7 +19,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen">
       <AppSidebar userEmail={user.email ?? ''} />
-      <div className="flex flex-1 flex-col pb-24 md:pb-0">
+      <div className="flex min-w-0 flex-1 flex-col pb-24 md:pb-0">
         <AppTopbar />
         <main className="flex-1 overflow-x-hidden p-6 md:p-10">{children}</main>
       </div>
