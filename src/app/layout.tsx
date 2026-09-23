@@ -30,7 +30,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       className={`${schibstedGrotesk.variable} ${ibmPlexMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="flex min-h-full flex-col">
+      <body className="flex min-h-full flex-col overflow-x-hidden">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
           <Toaster />

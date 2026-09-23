@@ -61,7 +61,7 @@ export function FilterBar({ categories }: { categories: Category[] }) {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <div className="min-w-0 space-y-1">
           <Label htmlFor="from">Desde</Label>
-          <div className="relative">
+          <div className="relative min-w-0 overflow-hidden rounded-xl">
             <Calendar
               size={16}
               className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
@@ -71,13 +71,13 @@ export function FilterBar({ categories }: { categories: Category[] }) {
               type="date"
               value={from}
               onChange={(e) => setFrom(e.target.value)}
-              className="pl-9"
+              className="w-full max-w-full pl-9"
             />
           </div>
         </div>
         <div className="min-w-0 space-y-1">
           <Label htmlFor="to">Hasta</Label>
-          <div className="relative">
+          <div className="relative min-w-0 overflow-hidden rounded-xl">
             <Calendar
               size={16}
               className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
@@ -87,7 +87,7 @@ export function FilterBar({ categories }: { categories: Category[] }) {
               type="date"
               value={to}
               onChange={(e) => setTo(e.target.value)}
-              className="pl-9"
+              className="w-full max-w-full pl-9"
             />
           </div>
         </div>
