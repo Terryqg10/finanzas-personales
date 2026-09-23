@@ -1,5 +1,6 @@
 'use client';
 
+import { Calendar } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 
@@ -60,11 +61,35 @@ export function FilterBar({ categories }: { categories: Category[] }) {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <div className="min-w-0 space-y-1">
           <Label htmlFor="from">Desde</Label>
-          <Input id="from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+          <div className="relative">
+            <Calendar
+              size={16}
+              className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
+            />
+            <Input
+              id="from"
+              type="date"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              className="pl-9"
+            />
+          </div>
         </div>
         <div className="min-w-0 space-y-1">
           <Label htmlFor="to">Hasta</Label>
-          <Input id="to" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+          <div className="relative">
+            <Calendar
+              size={16}
+              className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
+            />
+            <Input
+              id="to"
+              type="date"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              className="pl-9"
+            />
+          </div>
         </div>
         <div className="min-w-0 space-y-1">
           <Label htmlFor="min">Mín.</Label>
