@@ -96,3 +96,22 @@
     appearance: none;
   }
 }
+
+@layer utilities {
+  /*
+   * El chrome nativo que quitamos arriba también era el que, antes de este
+   * cambio, mantenía la caja de los inputs de fecha en blanco sin importar
+   * el tema de la app. Al quitarlo, el input pasó a heredar el fondo/texto
+   * normales del componente (que en modo oscuro son oscuros), oscureciendo
+   * la caja. Fijamos aquí un fondo y texto claros constantes —sin depender
+   * del tema— para conservar ese aspecto de "caja blanca suave" que ya
+   * gustaba. `color-scheme: light` hace que el propio selector nativo de
+   * iOS (el que se abre al tocar el campo) también use colores claros.
+   */
+  input[type='date'] {
+    color-scheme: light;
+    background-color: #fbfaf7 !important;
+    color: #1c1c1a !important;
+    border-color: #deddd6 !important;
+  }
+}
