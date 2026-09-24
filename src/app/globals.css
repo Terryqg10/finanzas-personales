@@ -110,8 +110,8 @@
    */
   input[type='date'] {
     color-scheme: light;
-    background-color: #fbfaf7 !important;
+    background-color: #ffffff !important;
     color: #1c1c1a !important;
-    border-color: #deddd6 !important;
+    border-color: #e4e3dd !important;
   }
 }
