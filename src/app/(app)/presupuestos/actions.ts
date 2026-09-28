@@ -33,11 +33,22 @@ export async function createBudget(
 
   const supabase = await createClient();
 
+  const { data: settings, error: settingsError } = await supabase
+    .from('user_settings')
+    .select('base_currency')
+    .eq('user_id', userId)
+    .single();
+
+  if (settingsError || !settings) {
+    return { status: 'error', message: 'No se pudo leer tu moneda base.' };
+  }
+
   const { error } = await supabase.from('budgets').insert({
     user_id: userId,
     category_id: parsed.data.categoryId,
     monthly_limit: parsed.data.monthlyLimit,
     alert_threshold: parsed.data.alertThreshold,
+    currency: settings.base_currency,
   });
 
   if (error) {

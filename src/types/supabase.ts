@@ -13,6 +13,7 @@ export type Database = {
           alert_threshold: number;
           category_id: string;
           created_at: string;
+          currency: string;
           id: string;
           monthly_limit: number;
           updated_at: string;
@@ -22,6 +23,7 @@ export type Database = {
           alert_threshold?: number;
           category_id: string;
           created_at?: string;
+          currency: string;
           id?: string;
           monthly_limit: number;
           updated_at?: string;
@@ -31,6 +33,7 @@ export type Database = {
           alert_threshold?: number;
           category_id?: string;
           created_at?: string;
+          currency?: string;
           id?: string;
           monthly_limit?: number;
           updated_at?: string;
@@ -264,7 +267,7 @@ export type Database = {
     };
     Functions: {
       get_balance_summary: {
-        Args: { p_currency: string };
+        Args: { p_currency: string; p_rates: Json };
         Returns: {
           expense: number;
           income: number;
@@ -272,7 +275,7 @@ export type Database = {
         }[];
       };
       get_budget_progress: {
-        Args: { p_currency: string };
+        Args: { p_currency: string; p_rates: Json };
         Returns: {
           alert_threshold: number;
           budget_id: string;
@@ -284,7 +287,7 @@ export type Database = {
         }[];
       };
       get_category_breakdown: {
-        Args: { p_currency: string; p_end: string; p_start: string };
+        Args: { p_currency: string; p_end: string; p_rates: Json; p_start: string };
         Returns: {
           category_color: string;
           category_id: string;
@@ -293,7 +296,7 @@ export type Database = {
         }[];
       };
       get_monthly_evolution: {
-        Args: { p_currency: string; p_months?: number };
+        Args: { p_currency: string; p_months?: number; p_rates: Json };
         Returns: {
           expense: number;
           income: number;
@@ -301,10 +304,16 @@ export type Database = {
         }[];
       };
       get_period_summary: {
-        Args: { p_currency: string; p_end: string; p_start: string };
+        Args: { p_currency: string; p_end: string; p_rates: Json; p_start: string };
         Returns: {
           expense: number;
           income: number;
+        }[];
+      };
+      get_user_currencies: {
+        Args: never;
+        Returns: {
+          currency: string;
         }[];
       };
       get_pending_recurring_reminders: {
@@ -340,7 +349,7 @@ export type Database = {
         }[];
       };
       get_weekend_spending_recommendation: {
-        Args: { p_currency: string };
+        Args: { p_currency: string; p_rates: Json };
         Returns: {
           discretionary_budget_remaining: number;
           discretionary_spent: number;

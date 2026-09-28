@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 
 import { getMonthRange } from '@/lib/date-range';
 import type { PeriodSummary } from '@/lib/data/dashboard';
+import type { RateMap } from '@/lib/data/user-currencies';
 import { formatMoney } from '@/lib/format-money';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
@@ -12,11 +13,14 @@ export function MonthlySummaryCard({
   initialData,
   initialMonth,
   currency,
+  rates,
 }: {
   initialData: PeriodSummary;
   /** Mes inicial en formato "YYYY-MM", el mes en curso al cargar el Dashboard. */
   initialMonth: string;
   currency: string;
+  /** Tasas de conversión (moneda -> currency) calculadas al cargar el Dashboard, reutilizadas aquí al cambiar de mes. */
+  rates: RateMap;
 }) {
   const [month, setMonth] = useState(initialMonth);
   const [data, setData] = useState(initialData);
@@ -30,7 +34,12 @@ export function MonthlySummaryCard({
       const { start, end } = getMonthRange(value);
       const supabase = createClient();
       const { data: row, error } = await supabase
-        .rpc('get_period_summary', { p_currency: currency, p_start: start, p_end: end })
+        .rpc('get_period_summary', {
+          p_currency: currency,
+          p_start: start,
+          p_end: end,
+          p_rates: rates,
+        })
         .single();
 
       if (!error && row) {

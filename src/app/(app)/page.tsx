@@ -15,6 +15,7 @@ import {
   getPeriodSummary,
   getWeekendSpendingRecommendation,
 } from '@/lib/data/dashboard';
+import { buildRateMap, getUserCurrencies } from '@/lib/data/user-currencies';
 import { getUserSettings } from '@/lib/data/user-settings';
 
 function currentMonthRange(): { start: string; end: string } {
@@ -34,6 +35,14 @@ export default async function DashboardPage() {
   const currentMonth = currentYearMonth();
   const currentMonthFullRange = getMonthRange(currentMonth);
 
+  // Se calculan de una vez todas las tasas que hagan falta (moneda de cada
+  // movimiento/presupuesto/regla recurrente -> moneda base actual) antes de
+  // llamar a las funciones de agregación, que ya no filtran por moneda sino
+  // que convierten "al vuelo" con este mapa. Ver
+  // specs/conversion-moneda-base-al-vuelo.md.
+  const currencies = await getUserCurrencies();
+  const rates = await buildRateMap(currencies, settings.base_currency);
+
   const [
     balance,
     periodSummary,
@@ -43,17 +52,18 @@ export default async function DashboardPage() {
     reminders,
     recommendation,
   ] = await Promise.all([
-    getBalanceSummary(settings.base_currency),
+    getBalanceSummary(settings.base_currency, rates),
     getPeriodSummary(
       settings.base_currency,
       currentMonthFullRange.start,
       currentMonthFullRange.end,
+      rates,
     ),
-    getCategoryBreakdown(settings.base_currency, start, end),
-    getMonthlyEvolution(settings.base_currency, 6),
-    getBudgetProgress(settings.base_currency),
+    getCategoryBreakdown(settings.base_currency, start, end, rates),
+    getMonthlyEvolution(settings.base_currency, rates, 6),
+    getBudgetProgress(settings.base_currency, rates),
     getPendingRecurringReminders(),
-    getWeekendSpendingRecommendation(settings.base_currency, settings.savings_rate_target),
+    getWeekendSpendingRecommendation(settings.base_currency, settings.savings_rate_target, rates),
   ]);
 
   const hasAnyData = balance.income > 0 || balance.expense > 0 || balance.otherCurrencyCount > 0;
@@ -77,12 +87,14 @@ export default async function DashboardPage() {
             initialData={periodSummary}
             initialMonth={currentMonth}
             currency={settings.base_currency}
+            rates={rates}
           />
 
           <div className="grid gap-4 md:grid-cols-2">
             <CategoryBreakdownChart
               initialData={categoryBreakdown}
               currency={settings.base_currency}
+              rates={rates}
             />
             <MonthlyEvolutionChart data={monthlyEvolution} currency={settings.base_currency} />
           </div>

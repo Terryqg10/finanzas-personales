@@ -1,3 +1,4 @@
+import type { RateMap } from '@/lib/data/user-currencies';
 import { createClient } from '@/lib/supabase/server';
 import { getRemainingWeekends } from '@/lib/weekends';
 
@@ -9,10 +10,10 @@ export interface BalanceSummary {
   otherCurrencyCount: number;
 }
 
-export async function getBalanceSummary(currency: string): Promise<BalanceSummary> {
+export async function getBalanceSummary(currency: string, rates: RateMap): Promise<BalanceSummary> {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .rpc('get_balance_summary', { p_currency: currency })
+    .rpc('get_balance_summary', { p_currency: currency, p_rates: rates })
     .single();
 
   if (error || !data) {
@@ -45,10 +46,11 @@ export async function getPeriodSummary(
   currency: string,
   start: string,
   end: string,
+  rates: RateMap,
 ): Promise<PeriodSummary> {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .rpc('get_period_summary', { p_currency: currency, p_start: start, p_end: end })
+    .rpc('get_period_summary', { p_currency: currency, p_start: start, p_end: end, p_rates: rates })
     .single();
 
   if (error || !data) {
@@ -74,12 +76,14 @@ export async function getCategoryBreakdown(
   currency: string,
   start: string,
   end: string,
+  rates: RateMap,
 ): Promise<CategoryBreakdownItem[]> {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc('get_category_breakdown', {
     p_currency: currency,
     p_start: start,
     p_end: end,
+    p_rates: rates,
   });
 
   if (error) {
@@ -102,11 +106,13 @@ export interface MonthlyEvolutionItem {
 
 export async function getMonthlyEvolution(
   currency: string,
+  rates: RateMap,
   months = 6,
 ): Promise<MonthlyEvolutionItem[]> {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc('get_monthly_evolution', {
     p_currency: currency,
+    p_rates: rates,
     p_months: months,
   });
 
@@ -131,9 +137,15 @@ export interface BudgetProgressItem {
   spent: number;
 }
 
-export async function getBudgetProgress(currency: string): Promise<BudgetProgressItem[]> {
+export async function getBudgetProgress(
+  currency: string,
+  rates: RateMap,
+): Promise<BudgetProgressItem[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc('get_budget_progress', { p_currency: currency });
+  const { data, error } = await supabase.rpc('get_budget_progress', {
+    p_currency: currency,
+    p_rates: rates,
+  });
 
   if (error) {
     throw new Error('No se pudo cargar el progreso de presupuestos.');
@@ -199,10 +211,11 @@ export interface WeekendSpendingRecommendation {
 export async function getWeekendSpendingRecommendation(
   currency: string,
   savingsRateTarget: number,
+  rates: RateMap,
 ): Promise<WeekendSpendingRecommendation> {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .rpc('get_weekend_spending_recommendation', { p_currency: currency })
+    .rpc('get_weekend_spending_recommendation', { p_currency: currency, p_rates: rates })
     .single();
 
   if (error || !data) {

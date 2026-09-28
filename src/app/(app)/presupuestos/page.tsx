@@ -2,12 +2,15 @@ import { BudgetsList } from '@/components/budgets/budgets-list';
 import { CreateBudgetDialog } from '@/components/budgets/create-budget-dialog';
 import { getCategories } from '@/lib/data/categories';
 import { getBudgetProgress } from '@/lib/data/dashboard';
+import { buildRateMap, getUserCurrencies } from '@/lib/data/user-currencies';
 import { getUserSettings } from '@/lib/data/user-settings';
 
 export default async function PresupuestosPage() {
   const userSettings = await getUserSettings();
+  const currencies = await getUserCurrencies();
+  const rates = await buildRateMap(currencies, userSettings.base_currency);
   const [budgets, categories] = await Promise.all([
-    getBudgetProgress(userSettings.base_currency),
+    getBudgetProgress(userSettings.base_currency, rates),
     getCategories(),
   ]);
 

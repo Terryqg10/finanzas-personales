@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { CategoryBreakdownItem } from '@/lib/data/dashboard';
+import type { RateMap } from '@/lib/data/user-currencies';
 import { formatMoney } from '@/lib/format-money';
 import { createClient } from '@/lib/supabase/client';
 
@@ -35,9 +36,12 @@ function getPeriodRange(period: Period): { start: string; end: string } {
 export function CategoryBreakdownChart({
   initialData,
   currency,
+  rates,
 }: {
   initialData: CategoryBreakdownItem[];
   currency: string;
+  /** Tasas de conversión (moneda -> currency) calculadas al cargar el Dashboard, reutilizadas aquí al cambiar de periodo. */
+  rates: RateMap;
 }) {
   const [period, setPeriod] = useState<Period>('month');
   const [data, setData] = useState(initialData);
@@ -54,6 +58,7 @@ export function CategoryBreakdownChart({
         p_currency: currency,
         p_start: start,
         p_end: end,
+        p_rates: rates,
       });
 
       if (!error && rows) {
