@@ -263,6 +263,14 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      apply_base_currency_conversion: {
+        Args: {
+          p_budget_rate: number | null;
+          p_new_currency: string;
+          p_transaction_rates: Json;
+        };
+        Returns: void;
+      };
       get_balance_summary: {
         Args: { p_currency: string };
         Returns: {
