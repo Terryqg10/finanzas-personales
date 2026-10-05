@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { AppBottomNav } from '@/components/app-bottom-nav';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppTopbar } from '@/components/app-topbar';
+import { DemoBanner } from '@/components/demo/demo-banner';
 import { createClient } from '@/lib/supabase/server';
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
@@ -20,6 +21,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen">
       <AppSidebar userEmail={user.email ?? ''} />
       <div className="flex min-w-0 flex-1 flex-col pb-24 md:pb-0">
+        {user.is_anonymous && <DemoBanner />}
         <AppTopbar />
         <main className="flex-1 overflow-x-hidden p-6 md:p-10">{children}</main>
       </div>
