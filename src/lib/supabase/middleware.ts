@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { getSupabaseEnv } from '@/lib/env';
 import type { Database } from '@/types/supabase';
 
-const PUBLIC_PATH_PREFIXES = ['/login', '/signup', '/auth'];
+const PUBLIC_PATH_PREFIXES = ['/login', '/auth'];
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix));
@@ -61,7 +61,7 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     return NextResponse.redirect(loginUrl);
   }
 
-  if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup')) {
+  if (user && request.nextUrl.pathname === '/login') {
     const homeUrl = request.nextUrl.clone();
     homeUrl.pathname = '/';
     return NextResponse.redirect(homeUrl);

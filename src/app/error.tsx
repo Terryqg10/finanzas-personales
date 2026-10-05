@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 /**
- * Error boundary para las rutas fuera del grupo `(app)` (login, signup).
+ * Error boundary para las rutas fuera del grupo `(app)` (login).
  * Mismo objetivo que `app/(app)/error.tsx` — ver ese archivo y
  * specs/manejo-errores-red-server-actions.md para el contexto completo del
  * bug que motivó ambos.
