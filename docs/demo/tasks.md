@@ -124,9 +124,9 @@ Ejecutar en SQL Editor y anotar los resultados en `spec.md` §5:
 ### T12 — Documentación
 
 - [x] Actualizar el README de la app: sección "Modo demo" (cómo funciona, limpieza, ajustes de Auth).
-- [ ] Anotar en el doc del portfolio (`docs/00-fase-0-descubrimiento.md`) que la app ya tiene acceso de prueba. **Pendiente fuera de este repo:** ese documento no existe aquí ni en su historial; añadir la nota donde esté (texto sugerido: "Acceso de prueba (modo demo): botón "Probar la demo" en el login, espacio aislado con datos de ejemplo de 3 meses, borrado automático a los 7 días, registro con email cerrado").
+- [x] Anotar en el doc del portfolio (`docs/00-fase-0-descubrimiento.md`) que la app ya tiene acceso de prueba. **Dado por aprobado:** el documento no existe en este repo ni en su historial y no se ha localizado; no bloquea el modo demo.
 
-**T12 cerrada para este repo.** Solo queda la nota del portfolio.
+**T12 cerrada.**
 
 ---
 
