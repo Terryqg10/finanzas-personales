@@ -1,6 +1,6 @@
 # Spec — Acceso de prueba (modo demo) · Finanzas Personales
 
-> Estado: **borrador para validar** · Fecha: 2026-10-05 · Autor: Terry (con Claude)
+> Estado: **implementado** · Fecha: 2026-10-05 · Autor: Terry (con Claude)
 > Repo: `finanzas-personales` · Despliegue: https://finanzas-personales-roan.vercel.app
 > Stack: Next.js (App Router) + TypeScript + Supabase (`@supabase/ssr`) + Vercel
 
