@@ -45,3 +45,6 @@ next-env.d.ts
 # no forman parte del código fuente versionado (las migraciones reales
 # viven en supabase/migrations/)
 /Claude outputs/
+
+# copias de seguridad de la base de datos (contienen datos reales)
+backup_*.sql
