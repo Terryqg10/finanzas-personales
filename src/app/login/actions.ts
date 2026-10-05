@@ -34,3 +34,23 @@ export async function login(
 
   redirect('/');
 }
+
+const DEMO_ERROR_MESSAGE = 'No se pudo iniciar la demo, inténtalo de nuevo.';
+
+export async function startDemo(): Promise<AuthActionState> {
+  let supabase;
+  try {
+    supabase = await createClient();
+  } catch {
+    return { status: 'error', message: DEMO_ERROR_MESSAGE };
+  }
+
+  // El trigger de la base de datos siembra los datos de ejemplo al crear el usuario.
+  const { error } = await supabase.auth.signInAnonymously();
+
+  if (error) {
+    return { status: 'error', message: DEMO_ERROR_MESSAGE };
+  }
+
+  redirect('/');
+}

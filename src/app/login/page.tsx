@@ -1,10 +1,9 @@
 'use client';
 
-import Link from 'next/link';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 
-import { login } from './actions';
+import { login, startDemo } from './actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,8 +19,18 @@ function SubmitButton() {
   );
 }
 
+function DemoButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" variant="secondary" className="w-full" disabled={pending}>
+      {pending ? 'Preparando la demo…' : 'Probar la demo'}
+    </Button>
+  );
+}
+
 export default function LoginPage() {
   const [state, formAction] = useActionState(login, initialAuthState);
+  const [demoState, demoAction] = useActionState(startDemo, initialAuthState);
 
   return (
     <main className="flex min-h-screen items-center justify-center p-4">
@@ -53,12 +62,22 @@ export default function LoginPage() {
             )}
             <SubmitButton />
           </form>
-          <p className="text-muted-foreground mt-4 text-center text-sm">
-            ¿No tienes cuenta?{' '}
-            <Link href="/signup" className="text-foreground underline underline-offset-4">
-              Regístrate
-            </Link>
-          </p>
+          <div className="text-muted-foreground my-6 flex items-center gap-3 text-xs">
+            <span className="bg-muted h-px flex-1" />
+            o
+            <span className="bg-muted h-px flex-1" />
+          </div>
+          <form action={demoAction} className="space-y-2">
+            <DemoButton />
+            <p className="text-muted-foreground text-center text-xs">
+              Sin registro · datos de ejemplo
+            </p>
+            {demoState.status === 'error' && (
+              <p role="alert" className="text-destructive text-center text-sm">
+                {demoState.message}
+              </p>
+            )}
+          </form>
         </CardContent>
       </Card>
     </main>
