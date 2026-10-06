@@ -1,6 +1,6 @@
 # HANDOFF — Finanzas Personales (traspaso a Claude Code)
 
-Actualizado el 2026-10-06 (sesión de Claude Code). Léelo entero antes de tocar nada.
+Actualizado el 2026-10-06, tras el correo propio (sesión de Claude Code). Léelo entero antes de tocar nada.
 
 ## 1. Proyecto y reglas de trabajo
 
@@ -42,7 +42,8 @@ Hecho y verificado en producción por Terry:
 - **Aislamiento entre usuarios** (2026-10-05): comprobado a nivel de RLS con una segunda cuenta; no ve ninguna fila de la cuenta principal en `transactions`, `budgets`, `recurring_rules`, `categories` ni `user_settings`. Solo se probó lectura, no escritura.
 - **Importación de extractos de Imagin** (`specs/importacion-extractos.md`, commit `20d8ed6`, `0028`): Movimientos → Importar extracto. Acepta el CSV de la **cuenta** (`Concepto;Fecha;Importe;Saldo`), rechaza el de tarjetas, vista previa con categoría por fila, transferencias a huchas desmarcadas, deduplicación por `import_key`, bloqueada en modo demo. Probada de extremo a extremo con datos reales (importar, reimportar, rechazo de tarjetas). Código en `src/lib/import/`, `src/app/(app)/movimientos/importar/`, `src/components/import/`.
 - `supabase/config.toml` generado con `supabase init` (commit `f54e6b7`). Nunca ejecutes `supabase config push`: cambiaría producción.
-- SMTP de Resend configurado en Supabase (Authentication → Emails). El remitente es `onboarding@resend.dev`, que solo entrega al correo dueño de la cuenta de Resend; para enviar a otros usuarios hace falta un dominio propio verificado.
+- **Aviso de presupuesto al registrar un gasto** (`specs/alertas-presupuesto.md`, commit `b1668f9`, sin migración): `createTransaction` devuelve `budgetAlert` si el gasto cruza el umbral o el límite de su categoría en el mes en curso, y el diálogo lo muestra como toast. Código en `src/lib/budget-alerts.ts` y `src/lib/data/budget-alerts.ts`. Los indicadores permanentes ya existían en Presupuestos y Dashboard. Probado por Terry en producción.
+- **Correo propio:** dominio `terryq.com` (Cloudflare) verificado en Resend (región Irlanda). SMTP de Resend en Supabase (Authentication → Emails) con remitente `Finanzas Personales <no-reply@terryq.com>`; verificado con un correo de recuperación de contraseña a Terry. `contacto@terryq.com` es solo para recibir (Email Routing de Cloudflare); no se usa para enviar. Pendiente comprobar la entrega a la segunda cuenta de prueba (otro correo).
 - Variables de Vercel `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY` existen y están marcadas para Production. `EXCHANGE_RATE_API_KEY`, `RESEND_API_KEY` y `WEB_PUSH_*` aparecen en `.env.example` pero el código aún no las lee.
 
 Los documentos de referencia (checklist QA, specs de otras funciones, decisión de diseño) viven en el Project de claude.ai, **no en este repo**.
@@ -53,12 +54,12 @@ Los documentos de referencia (checklist QA, specs de otras funciones, decisión 
 
 Guíalo paso a paso, sin darlas por hechas:
 
-1. `npx supabase migration repair --status applied 0022 0023 0024 0025 0026 0027` (y `0028` si aún no lo hizo). Comprobar con `npx supabase migration list` que no queda ninguna pendiente.
-2. Confirmar que `NEXT_PUBLIC_SUPABASE_URL` en Vercel vale exactamente `https://qlakyhkxamlhelbhlikb.supabase.co`.
-3. Revisión visual final en modo claro y oscuro de todas las pantallas (la revisión de código no encontró colores sueltos; falta verlo) y de la pantalla de importación.
-4. Probar orientación horizontal en móvil, si la usa.
-5. Opcional: prueba de escritura entre cuentas (que la cuenta B no pueda insertar, actualizar ni borrar filas de A).
-6. Actualizar el Project: spec de importación, `qa/checklist-control-calidad.md` (aislamiento, boundary en oscuro, demo, importación: reimportar, fila inválida, divisa distinta de la base, demo bloqueada, rechazo de tarjetas) y las reglas de UI con tokens semánticos.
+Hechos por Terry el 2026-10-06: el `migration repair` de `0022`–`0028`, la confirmación del valor de `NEXT_PUBLIC_SUPABASE_URL` en Vercel y la revisión visual de las pantallas. Quedan:
+
+1. Probar orientación horizontal en móvil, si la usa.
+2. Opcional: prueba de escritura entre cuentas (que la cuenta B no pueda insertar, actualizar ni borrar filas de A).
+3. Comprobar que el correo de recuperación llega a la segunda cuenta de prueba (otro correo distinto del de Terry).
+4. Project de claude.ai: subidas las specs de importación y de alertas (comprobar que están dentro de la carpeta `specs`, junto a una `modo-demo.md` copiada de `docs/demo/spec.md`). Falta confirmar que `qa/checklist-control-calidad.md` incluye los casos nuevos (aislamiento, boundary en oscuro, demo, importación: reimportar, fila inválida, divisa distinta de la base, demo bloqueada, rechazo de tarjetas; avisos: cruce de umbral, de límite, gasto que no cruza, ingreso, categoría sin presupuesto, mes pasado) y las reglas de UI con tokens semánticos.
 
 ### Tarea B — Decisiones y cabos sueltos del repo
 
@@ -67,7 +68,7 @@ Guíalo paso a paso, sin darlas por hechas:
 
 ### Tarea C — Roadmap (cada punto exige spec antes de código)
 
-1. **Alertas de presupuesto por push/email.** Ya existe `budgets.alert_threshold`. Falta decidir canal (Web Push con `WEB_PUSH_*`, email con Resend) y disparador (al registrar un movimiento o programado). Ojo: con `onboarding@resend.dev` el email solo llegaría a Terry.
+1. **Alertas de presupuesto, fases siguientes.** La fase A (aviso en la app) está hecha. Quedan la **B (email)**, ya viable porque el dominio `terryq.com` está verificado en Resend (hay que decidir disparador: al registrar un gasto o programado, y cómo evitar avisos repetidos), y la **C (push del navegador)**, que exige convertir la web en app instalable (service worker, manifest; en iPhone solo funciona con la app añadida a la pantalla de inicio). Cada una necesita su spec.
 2. **Fase 2:** GoCardless Bank Account Data, consentimiento de 90 días, deduplicación (la importación manual de `0028` ya usa `source = 'imported'`).
 3. **Fase 3:** multiusuario con políticas RLS abiertas y `MULTI_USER_SIGNUP_ENABLED`. Hoy el registro público está cerrado y la ruta `/signup` ya no existe; habría que reabrirla y ajustar el hook `before user created`.
 
