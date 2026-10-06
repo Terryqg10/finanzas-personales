@@ -17,6 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { formatBudgetAlert } from '@/lib/budget-alerts';
 import type { Category } from '@/lib/data/categories';
 import { initialTransactionState } from '@/lib/validations/transaction';
 
@@ -49,6 +50,9 @@ export function CreateTransactionDialog({
   useEffect(() => {
     if (state.status !== 'success') return;
     toast.success(state.message ?? 'Movimiento registrado.');
+    if (state.budgetAlert) {
+      toast.warning(formatBudgetAlert(state.budgetAlert));
+    }
     // eslint-disable-next-line react-hooks/set-state-in-effect -- cerrar el modal es una reacción legítima al resultado de la Server Action, no puede calcularse durante el render
     setOpen(false);
   }, [state]);

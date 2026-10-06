@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 
+import type { BudgetAlert } from '@/lib/budget-alerts';
+import { getBudgetAlertForExpense } from '@/lib/data/budget-alerts';
 import { getUserSettings } from '@/lib/data/user-settings';
 import { getExchangeRate } from '@/lib/exchange-rate';
 import { createClient } from '@/lib/supabase/server';
@@ -82,15 +84,33 @@ export async function createTransaction(
   revalidatePath('/movimientos');
   revalidatePath('/');
 
+  // El aviso es secundario: el gasto ya está guardado, así que cualquier fallo
+  // al calcularlo se descarta en silencio en vez de convertirlo en un error.
+  let budgetAlert: BudgetAlert | null = null;
+  if (parsed.data.type === 'expense') {
+    try {
+      budgetAlert = await getBudgetAlertForExpense({
+        categoryId: parsed.data.categoryId,
+        date: parsed.data.date,
+        currency: parsed.data.currency,
+        amount: parsed.data.amount,
+        baseCurrency: settings.base_currency,
+      });
+    } catch {
+      budgetAlert = null;
+    }
+  }
+
   if (rateResult.stale) {
     return {
       status: 'success',
       message:
         'Movimiento registrado. Aviso: el servicio de tasas de cambio no respondió, se usó la última tasa conocida.',
+      budgetAlert,
     };
   }
 
-  return { status: 'success', message: 'Movimiento registrado.' };
+  return { status: 'success', message: 'Movimiento registrado.', budgetAlert };
 }
 
 export async function updateTransaction(

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import type { BudgetAlert } from '@/lib/budget-alerts';
 import { SUPPORTED_CURRENCY_CODES } from '@/lib/currencies';
 
 export const createTransactionSchema = z.object({
@@ -29,6 +30,8 @@ export const deleteTransactionSchema = z.object({
 export interface TransactionActionState {
   status: 'idle' | 'error' | 'success';
   message: string | null;
+  /** Presente solo si el gasto recién guardado cruza el umbral o el límite de su presupuesto. */
+  budgetAlert?: BudgetAlert | null;
 }
 
 export const initialTransactionState: TransactionActionState = { status: 'idle', message: null };
