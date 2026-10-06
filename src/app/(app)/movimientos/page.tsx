@@ -1,3 +1,6 @@
+import Link from 'next/link';
+
+import { Button } from '@/components/ui/button';
 import { CreateTransactionDialog } from '@/components/transactions/create-transaction-dialog';
 import { FilterBar } from '@/components/transactions/filter-bar';
 import { PaginationControls } from '@/components/transactions/pagination-controls';
@@ -53,7 +56,12 @@ export default async function MovimientosPage({
             {total} movimiento{total === 1 ? '' : 's'} en total.
           </p>
         </div>
-        <CreateTransactionDialog categories={categories} baseCurrency={settings.base_currency} />
+        <div className="flex items-center gap-3">
+          <Button asChild variant="secondary">
+            <Link href="/movimientos/importar">Importar extracto</Link>
+          </Button>
+          <CreateTransactionDialog categories={categories} baseCurrency={settings.base_currency} />
+        </div>
       </div>
 
       <FilterBar categories={categories} />

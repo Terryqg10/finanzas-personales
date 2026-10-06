@@ -171,6 +171,7 @@ export type Database = {
           description: string;
           exchange_rate_used: number;
           id: string;
+          import_key: string | null;
           recurring_rule_id: string | null;
           source: Database['public']['Enums']['transaction_source'];
           type: Database['public']['Enums']['transaction_type'];
@@ -188,6 +189,7 @@ export type Database = {
           description: string;
           exchange_rate_used: number;
           id?: string;
+          import_key?: string | null;
           recurring_rule_id?: string | null;
           source?: Database['public']['Enums']['transaction_source'];
           type: Database['public']['Enums']['transaction_type'];
@@ -205,6 +207,7 @@ export type Database = {
           description?: string;
           exchange_rate_used?: number;
           id?: string;
+          import_key?: string | null;
           recurring_rule_id?: string | null;
           source?: Database['public']['Enums']['transaction_source'];
           type?: Database['public']['Enums']['transaction_type'];
