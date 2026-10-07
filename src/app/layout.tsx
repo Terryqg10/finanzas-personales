@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { IBM_Plex_Mono, Schibsted_Grotesk } from 'next/font/google';
 
 import { ThemeProvider } from '@/components/theme-provider';
@@ -21,6 +21,12 @@ const ibmPlexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: 'Finanzas Personales',
   description: 'Control de finanzas personales — dashboard, movimientos y presupuestos.',
+  icons: { apple: '/icons/apple-touch-icon.png' },
+  appleWebApp: { capable: true, title: 'Finanzas', statusBarStyle: 'default' },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#266260',
 };
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {

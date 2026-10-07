@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { currentMonthStart } from './budget-alert-emails';
+import { currentMonthStart } from './budget-alert-notifications';
 
 describe('currentMonthStart', () => {
   it('devuelve el primer día del mes de la fecha dada', () => {

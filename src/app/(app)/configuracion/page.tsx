@@ -2,11 +2,19 @@ import Link from 'next/link';
 
 import { BaseCurrencyForm } from '@/components/settings/base-currency-form';
 import { NotifyEmailForm } from '@/components/settings/notify-email-form';
+import { PushNotificationsForm } from '@/components/settings/push-notifications-form';
 import { SavingsRateForm } from '@/components/settings/savings-rate-form';
 import { getUserSettings } from '@/lib/data/user-settings';
+import { createClient } from '@/lib/supabase/server';
 
 export default async function ConfiguracionPage() {
   const settings = await getUserSettings();
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isDemo = user?.is_anonymous === true;
 
   return (
     <div className="space-y-10">
@@ -47,6 +55,18 @@ export default async function ConfiguracionPage() {
           </p>
         </div>
         <NotifyEmailForm initialEnabled={settings.notify_email} />
+      </section>
+
+      <section className="bg-card space-y-4 rounded-2xl p-6 shadow-sm">
+        <div className="space-y-1">
+          <h2 className="text-foreground text-sm font-semibold">Notificaciones push</h2>
+          <p className="text-muted-foreground text-sm">
+            Recibe el mismo aviso de presupuesto como notificación del dispositivo, incluso con la
+            app cerrada. Se activan por dispositivo: hazlo en cada móvil u ordenador donde las
+            quieras.
+          </p>
+        </div>
+        <PushNotificationsForm isDemo={isDemo} />
       </section>
 
       <Link
