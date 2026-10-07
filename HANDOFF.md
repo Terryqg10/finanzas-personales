@@ -1,6 +1,6 @@
 # HANDOFF — Finanzas Personales (traspaso a Claude Code)
 
-Actualizado el 2026-10-06, tras el correo propio (sesión de Claude Code). Léelo entero antes de tocar nada.
+Actualizado el 2026-10-07 (sesión de Claude Code). Léelo entero antes de tocar nada.
 
 ## 1. Proyecto y reglas de trabajo
 
@@ -54,12 +54,11 @@ Los documentos de referencia (checklist QA, specs de otras funciones, decisión 
 
 Guíalo paso a paso, sin darlas por hechas:
 
-Hechos por Terry el 2026-10-06: el `migration repair` de `0022`–`0028`, la confirmación del valor de `NEXT_PUBLIC_SUPABASE_URL` en Vercel y la revisión visual de las pantallas. Quedan:
+Hechos por Terry (2026-10-06 y 2026-10-07): el `migration repair` de `0022`–`0028`, la confirmación del valor de `NEXT_PUBLIC_SUPABASE_URL` en Vercel, la revisión visual de las pantallas, la orientación horizontal en móvil, el registro DMARC de `terryq.com` en Cloudflare, la comprobación de que el correo llega a otra cuenta (`navisqa79@gmail.com`; cae en spam al principio por ser un dominio nuevo) y la subida al Project de las specs de importación y de alertas y del archivo `qa/casos-qa-2026-10.md` (en la raíz del Context, no dentro de las carpetas). Quedan:
 
-1. Probar orientación horizontal en móvil, si la usa.
-2. Opcional: prueba de escritura entre cuentas (que la cuenta B no pueda insertar, actualizar ni borrar filas de A).
-3. Comprobar que el correo de recuperación llega a la segunda cuenta de prueba (otro correo distinto del de Terry).
-4. Project de claude.ai: subidas las specs de importación y de alertas (comprobar que están dentro de la carpeta `specs`, junto a una `modo-demo.md` copiada de `docs/demo/spec.md`). Falta confirmar que `qa/checklist-control-calidad.md` incluye los casos nuevos (aislamiento, boundary en oscuro, demo, importación: reimportar, fila inválida, divisa distinta de la base, demo bloqueada, rechazo de tarjetas; avisos: cruce de umbral, de límite, gasto que no cruza, ingreso, categoría sin presupuesto, mes pasado) y las reglas de UI con tokens semánticos.
+1. Opcional: prueba de escritura entre cuentas (que la cuenta B no pueda insertar, actualizar ni borrar filas de A).
+2. Marcar como probados los casos `[ ]` de `casos-qa-2026-10.md` (fila inválida en el CSV, divisa distinta de la base, gasto de un mes pasado sin aviso).
+3. Confirmar que las reglas de UI del Project dicen tokens semánticos y no `bg-white`/`text-slate-900`.
 
 ### Tarea B — Decisiones y cabos sueltos del repo
 
