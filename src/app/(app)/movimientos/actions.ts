@@ -6,7 +6,7 @@ import { headers } from 'next/headers';
 import { after } from 'next/server';
 
 import type { BudgetAlert } from '@/lib/budget-alerts';
-import { getBudgetAlertForExpense } from '@/lib/data/budget-alerts';
+import { getBudgetAlertForChange } from '@/lib/data/budget-alerts';
 import { claimBudgetAlertEmail } from '@/lib/data/budget-alert-emails';
 import { getUserSettings } from '@/lib/data/user-settings';
 import { buildBudgetAlertEmail } from '@/lib/email/budget-alert-email';
@@ -152,11 +152,15 @@ export async function createTransaction(
   let budgetAlert: BudgetAlert | null = null;
   if (parsed.data.type === 'expense') {
     try {
-      budgetAlert = await getBudgetAlertForExpense({
-        categoryId: parsed.data.categoryId,
-        date: parsed.data.date,
+      budgetAlert = await getBudgetAlertForChange({
+        before: null,
+        after: {
+          type: 'expense',
+          categoryId: parsed.data.categoryId,
+          date: parsed.data.date,
+          amount: parsed.data.amount,
+        },
         currency: parsed.data.currency,
-        amount: parsed.data.amount,
         baseCurrency: settings.base_currency,
       });
     } catch {
@@ -217,6 +221,14 @@ export async function updateTransaction(
     return { status: 'error', message };
   }
 
+  // Estado previo del gasto, para avisar solo por el aumento neto. Si no se
+  // puede leer, se edita igualmente pero sin aviso (no hay "antes" fiable).
+  const { data: previous } = await supabase
+    .from('transactions')
+    .select('category_id, type, date, amount_original, currency_original')
+    .eq('id', parsed.data.id)
+    .maybeSingle();
+
   const { data, error } = await supabase
     .from('transactions')
     .update({
@@ -242,7 +254,45 @@ export async function updateTransaction(
 
   revalidatePath('/movimientos');
   revalidatePath('/');
-  return { status: 'success', message: 'Movimiento actualizado.' };
+
+  // Como en la creación, el aviso es secundario: la edición ya está guardada,
+  // así que cualquier fallo al calcularlo se descarta en silencio.
+  let budgetAlert: BudgetAlert | null = null;
+  if (previous && parsed.data.type === 'expense') {
+    try {
+      const settings = await getUserSettings();
+      budgetAlert = await getBudgetAlertForChange({
+        before: {
+          type: previous.type,
+          categoryId: previous.category_id,
+          date: previous.date,
+          amount: previous.amount_original,
+        },
+        after: {
+          type: 'expense',
+          categoryId: parsed.data.categoryId,
+          date: parsed.data.date,
+          amount: parsed.data.amount,
+        },
+        // La edición no cambia la moneda original del movimiento.
+        currency: previous.currency_original,
+        baseCurrency: settings.base_currency,
+      });
+
+      if (budgetAlert) {
+        await queueBudgetAlertEmail({
+          supabase,
+          alert: budgetAlert,
+          currency: settings.base_currency,
+          notifyEmail: settings.notify_email,
+        });
+      }
+    } catch {
+      budgetAlert = null;
+    }
+  }
+
+  return { status: 'success', message: 'Movimiento actualizado.', budgetAlert };
 }
 
 export async function deleteTransaction(

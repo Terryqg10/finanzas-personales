@@ -70,6 +70,51 @@ export function detectBudgetAlert(input: DetectBudgetAlertInput): BudgetAlert | 
   return null;
 }
 
+/** Estado de un movimiento relevante para el presupuesto, en su moneda original. */
+export interface TransactionSnapshot {
+  type: 'income' | 'expense';
+  categoryId: string;
+  /** Fecha ISO `aaaa-mm-dd`. */
+  date: string;
+  /** Importe positivo en la moneda original del movimiento. */
+  amount: number;
+}
+
+export interface ComputeBudgetIncreaseInput {
+  /** Estado previo (edición) o `null` si el gasto es nuevo. */
+  before: TransactionSnapshot | null;
+  after: TransactionSnapshot;
+  /** Mes en curso como `aaaa-mm`. */
+  currentMonth: string;
+  /** Tasa moneda original → moneda base. */
+  rate: number;
+}
+
+/**
+ * Aumento neto, en moneda base, de lo gastado en el presupuesto de la
+ * categoría **resultante** (`after.categoryId`) en el mes en curso. Un
+ * movimiento solo cuenta si es un gasto de esa categoría con fecha en el mes
+ * en curso. Nunca es negativo: bajar un gasto, cambiarlo de mes o convertirlo
+ * en ingreso no puede avisar. Spec: specs/alertas-presupuesto-edicion.md, §2.
+ */
+export function computeBudgetIncrease(input: ComputeBudgetIncreaseInput): number {
+  const { before, after, currentMonth, rate } = input;
+
+  const contribution = (transaction: TransactionSnapshot | null): number => {
+    if (
+      transaction === null ||
+      transaction.type !== 'expense' ||
+      transaction.categoryId !== after.categoryId ||
+      transaction.date.slice(0, 7) !== currentMonth
+    ) {
+      return 0;
+    }
+    return toCents(transaction.amount * rate);
+  };
+
+  return Math.max(0, contribution(after) - contribution(before)) / 100;
+}
+
 export function formatBudgetAlert(alert: BudgetAlert): string {
   return alert.level === 'limit'
     ? `Has superado el límite mensual de ${alert.categoryName}.`

@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { detectBudgetAlert, formatBudgetAlert, type DetectBudgetAlertInput } from './budget-alerts';
+import {
+  computeBudgetIncrease,
+  detectBudgetAlert,
+  formatBudgetAlert,
+  type DetectBudgetAlertInput,
+  type TransactionSnapshot,
+} from './budget-alerts';
 
 function input(overrides: Partial<DetectBudgetAlertInput> = {}): DetectBudgetAlertInput {
   return {
@@ -100,5 +106,59 @@ describe('formatBudgetAlert', () => {
     expect(formatBudgetAlert({ ...base, level: 'threshold', percentage: 85 })).toBe(
       'Vas por el 85% de tu límite de Ocio (umbral: 80%).',
     );
+  });
+});
+
+describe('computeBudgetIncrease', () => {
+  const MONTH = '2026-10';
+  const food = (overrides: Partial<TransactionSnapshot> = {}): TransactionSnapshot => ({
+    type: 'expense',
+    categoryId: 'food',
+    date: '2026-10-05',
+    amount: 100,
+    ...overrides,
+  });
+  const increase = (before: TransactionSnapshot | null, after: TransactionSnapshot, rate = 1) =>
+    computeBudgetIncrease({ before, after, currentMonth: MONTH, rate });
+
+  it('un gasto nuevo aporta su importe entero', () => {
+    expect(increase(null, food({ amount: 42 }))).toBe(42);
+  });
+
+  it('subir el importe aporta solo la diferencia (100 → 310 son +210)', () => {
+    expect(increase(food({ amount: 100 }), food({ amount: 310 }))).toBe(210);
+  });
+
+  it('bajar o no cambiar el importe no aporta nada', () => {
+    expect(increase(food({ amount: 100 }), food({ amount: 60 }))).toBe(0);
+    expect(increase(food({ amount: 100 }), food({ amount: 100 }))).toBe(0);
+  });
+
+  it('cambiar de categoría aporta el importe entero a la categoría nueva', () => {
+    expect(increase(food({ categoryId: 'leisure', amount: 100 }), food({ amount: 100 }))).toBe(100);
+  });
+
+  it('mover la fecha del mes pasado al mes en curso aporta el importe entero', () => {
+    expect(increase(food({ date: '2026-09-20' }), food({ date: '2026-10-02' }))).toBe(100);
+  });
+
+  it('sacar el gasto del mes en curso no aporta nada', () => {
+    expect(increase(food({ date: '2026-10-02' }), food({ date: '2026-09-20' }))).toBe(0);
+  });
+
+  it('editar un gasto de otro mes sin traerlo al actual no aporta nada', () => {
+    expect(increase(food({ date: '2026-09-01' }), food({ date: '2026-09-10', amount: 500 }))).toBe(
+      0,
+    );
+  });
+
+  it('convertir un ingreso en gasto aporta el importe entero; al revés, nada', () => {
+    expect(increase(food({ type: 'income' }), food({ type: 'expense' }))).toBe(100);
+    expect(increase(food({ type: 'expense' }), food({ type: 'income' }))).toBe(0);
+  });
+
+  it('convierte con la tasa a la moneda base y redondea a céntimos', () => {
+    expect(increase(food({ amount: 10 }), food({ amount: 30 }), 0.9)).toBe(18);
+    expect(increase(null, food({ amount: 0.1 }), 3)).toBe(0.3);
   });
 });
