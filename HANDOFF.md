@@ -1,6 +1,6 @@
 # HANDOFF — Finanzas Personales (traspaso a Claude Code)
 
-Actualizado el 2026-10-07 (sesión de Claude Code). Léelo entero antes de tocar nada.
+Actualizado el 2026-10-07, tras los avisos por email y de edición (sesión de Claude Code). Léelo entero antes de tocar nada.
 
 ## 1. Proyecto y reglas de trabajo
 
@@ -14,7 +14,7 @@ Metodología **SDD (Spec-Driven Development)**, obligatoria:
 4. Tras cada decisión de arquitectura, recordarle a Terry que actualice los documentos del Project "App Finanzas Personales" en claude.ai (specs y `qa/checklist-control-calidad.md`).
 5. UI: minimalismo estructural. Tarjetas `bg-card rounded-2xl p-6 shadow-sm` sin bordes, CTAs `rounded-full`, whitespace antes que color, importes en `font-sans` (nunca monoespaciada), gasto en `rose-500`, ingreso en `emerald-600`, todo alineado con Flexbox/Grid, solo tokens semánticos (`bg-background`, `bg-card`, `text-foreground`, `text-muted-foreground`; nunca `bg-white`/`text-gray-*` sueltos, para no romper el modo oscuro).
 
-Verificación antes de dar nada por terminado: `npx tsc --noEmit`, `npm run lint`, `npx vitest run` (120 tests en verde a 2026-10-06) y, si tocas rutas, `npm run build` (en local pasa).
+Verificación antes de dar nada por terminado: `npx tsc --noEmit`, `npm run lint`, `npx vitest run` (157 tests en verde a 2026-10-07) y, si tocas rutas, `npm run build` (en local pasa).
 
 Entorno de Terry: Windows + PowerShell, sin Python ni Docker. El CLI de Supabase solo está como devDependency (`npx supabase ...`); `supabase db dump` y `db pull` no funcionan.
 
@@ -23,7 +23,7 @@ Entorno de Terry: Windows + PowerShell, sin Python ni Docker. El CLI de Supabase
 ## 2. Reglas de oro sobre la base de datos
 
 - **No uses `supabase db push`.** Las migraciones se aplican pegando el SQL en el SQL Editor de Supabase. Para cambios nuevos: crea el archivo en `supabase/migrations/` y pásale a Terry el SQL para que lo pegue; después él ejecuta `npx supabase migration repair --status applied <número>`. Nunca ejecutes SQL contra producción sin su confirmación.
-- Numeración vigente: `0012`–`0021` (dashboard y multi-moneda), `0022`–`0026` (modo demo), `0027` (snapshot documental del esquema, no se ejecuta jamás), `0028` (`transactions.import_key`). La siguiente libre es `0029`.
+- Numeración vigente: `0012`–`0021` (dashboard y multi-moneda), `0022`–`0026` (modo demo), `0027` (snapshot documental del esquema, no se ejecuta jamás), `0028` (`transactions.import_key`), `0029` (`budget_alert_emails`). La siguiente libre es `0030`.
 - Las migraciones `0001`–`0011` existen como archivo en `src/lib/supabase/migrations/` (carpeta fuera de la que lee la CLI; decisión de Terry: se quedan ahí). `0027` es la referencia verificada contra producción.
 - Los tipos se generan a mano en `src/types/supabase.ts`; al cambiar una función o tabla, actualízalo en el mismo cambio.
 - Todas las RPC del Dashboard reciben `p_rates jsonb` (mapa moneda→tasa hacia la moneda base) y convierten al vuelo. Ver `specs/conversion-moneda-base-al-vuelo.md` (vive en el Project).
@@ -43,8 +43,10 @@ Hecho y verificado en producción por Terry:
 - **Importación de extractos de Imagin** (`specs/importacion-extractos.md`, commit `20d8ed6`, `0028`): Movimientos → Importar extracto. Acepta el CSV de la **cuenta** (`Concepto;Fecha;Importe;Saldo`), rechaza el de tarjetas, vista previa con categoría por fila, transferencias a huchas desmarcadas, deduplicación por `import_key`, bloqueada en modo demo. Probada de extremo a extremo con datos reales (importar, reimportar, rechazo de tarjetas). Código en `src/lib/import/`, `src/app/(app)/movimientos/importar/`, `src/components/import/`.
 - `supabase/config.toml` generado con `supabase init` (commit `f54e6b7`). Nunca ejecutes `supabase config push`: cambiaría producción.
 - **Aviso de presupuesto al registrar un gasto** (`specs/alertas-presupuesto.md`, commit `b1668f9`, sin migración): `createTransaction` devuelve `budgetAlert` si el gasto cruza el umbral o el límite de su categoría en el mes en curso, y el diálogo lo muestra como toast. Código en `src/lib/budget-alerts.ts` y `src/lib/data/budget-alerts.ts`. Los indicadores permanentes ya existían en Presupuestos y Dashboard. Probado por Terry en producción.
-- **Correo propio:** dominio `terryq.com` (Cloudflare) verificado en Resend (región Irlanda). SMTP de Resend en Supabase (Authentication → Emails) con remitente `Finanzas Personales <no-reply@terryq.com>`; verificado con un correo de recuperación de contraseña a Terry. `contacto@terryq.com` es solo para recibir (Email Routing de Cloudflare); no se usa para enviar. Pendiente comprobar la entrega a la segunda cuenta de prueba (otro correo).
-- Variables de Vercel `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY` existen y están marcadas para Production. `EXCHANGE_RATE_API_KEY`, `RESEND_API_KEY` y `WEB_PUSH_*` aparecen en `.env.example` pero el código aún no las lee.
+- **Aviso de presupuesto por email** (`specs/alertas-presupuesto-email.md`, commit `563c3ce`, migración `0029`): al cruzar un nivel se envía además un email por Resend (`fetch` a la API, sin dependencias), como mucho **uno por usuario, presupuesto, mes y nivel**. La reserva es una fila en `budget_alert_emails` (UNIQUE + RLS), insertada antes de enviar; solo la llamada de red va en `after()`. No se envía a usuarios demo, sin email o con `user_settings.notify_email = false`; el interruptor está en Configuración (`/api/settings/notify-email`). El envío es secundario: si falla o falta `RESEND_API_KEY`, el gasto y el toast no se ven afectados y solo hay una línea `[budget-alert-email]` en los logs de Vercel. Código en `src/lib/email/`, `src/lib/data/budget-alert-emails.ts`, `queueBudgetAlertEmail` en `movimientos/actions.ts`. Probado por Terry en producción.
+- **Avisos también al editar** (`specs/alertas-presupuesto-edicion.md`, commit `bdf2f5b`, sin migración): `updateTransaction` lee el gasto antes de modificarlo y avisa por el **aumento neto** en la categoría resultante (`computeBudgetIncrease` en `src/lib/budget-alerts.ts`; creación y edición comparten `getBudgetAlertForChange`). Bajar, no cambiar, sacar el gasto del mes en curso o volverlo ingreso nunca avisa. El toast no tiene memoria; el email mantiene su límite de uno por nivel y mes. La edición no cambia la moneda original del gasto (el `update` la ignora). Terry validó la spec; los casos del archivo de QA de edición están pendientes de marcar.
+- **Correo propio:** dominio `terryq.com` (Cloudflare) verificado en Resend (región Irlanda), con DMARC. SMTP de Resend en Supabase (Authentication → Emails) con remitente `Finanzas Personales <no-reply@terryq.com>`; verificado con un correo de recuperación a Terry y a otra cuenta (llega, al principio a spam por ser un dominio nuevo). `contacto@terryq.com` es solo para recibir (Email Routing de Cloudflare); no se usa para enviar. Los avisos de presupuesto usan **otra clave de Resend, de solo envío**, guardada como `RESEND_API_KEY` secreta (Sensitive) en Vercel para Production y Preview; la clave del SMTP de Supabase es distinta.
+- Variables de Vercel `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` y `RESEND_API_KEY` existen y están marcadas para Production. `EXCHANGE_RATE_API_KEY` y `WEB_PUSH_*` aparecen en `.env.example` pero el código aún no las lee. `APP_URL` (enlaces de los emails) y `EMAIL_FROM` son constantes en `src/lib/email/config.ts`: cámbialas si se usa un dominio propio para la app.
 
 Los documentos de referencia (checklist QA, specs de otras funciones, decisión de diseño) viven en el Project de claude.ai, **no en este repo**.
 
@@ -57,17 +59,17 @@ Guíalo paso a paso, sin darlas por hechas:
 Hechos por Terry (2026-10-06 y 2026-10-07): el `migration repair` de `0022`–`0028`, la confirmación del valor de `NEXT_PUBLIC_SUPABASE_URL` en Vercel, la revisión visual de las pantallas, la orientación horizontal en móvil, el registro DMARC de `terryq.com` en Cloudflare, la comprobación de que el correo llega a otra cuenta (`navisqa79@gmail.com`; cae en spam al principio por ser un dominio nuevo) y la subida al Project de las specs de importación y de alertas y del archivo `qa/casos-qa-2026-10.md` (en la raíz del Context, no dentro de las carpetas). Quedan:
 
 1. Opcional: prueba de escritura entre cuentas (que la cuenta B no pueda insertar, actualizar ni borrar filas de A).
-2. Marcar como probados los casos `[ ]` de `casos-qa-2026-10.md` (fila inválida en el CSV, divisa distinta de la base, gasto de un mes pasado sin aviso).
-3. Confirmar que las reglas de UI del Project dicen tokens semánticos y no `bg-white`/`text-slate-900`.
+2. Marcar como probados los casos `[ ]` de `casos-qa-2026-10.md` (fila inválida en el CSV, divisa distinta de la base, gasto de un mes pasado sin aviso) y de `casos-qa-avisos-email.md` (avisos al editar, usuario demo sin email, falta de `RESEND_API_KEY`).
+3. Subir al Project `specs/alertas-presupuesto-email.md` y `specs/alertas-presupuesto-edicion.md`.
+4. Confirmar que las reglas de UI del Project dicen tokens semánticos y no `bg-white`/`text-slate-900`.
 
-### Tarea B — Decisiones y cabos sueltos del repo
+### Tarea B — Cabos sueltos del repo
 
-- Sigue sin commitear el borrado de `src/lib/currency-conversion.ts` y `.test.ts`: Terry debe confirmar si es intencionado (la conversión al vuelo del commit `9f9ba91` vive en `user-currencies.ts`) antes de commitearlo o restaurarlo.
 - Valorar si el color de texto del filtro de categorías (`filter-bar.tsx`, `text-white` sobre el color de la categoría) necesita calcularse por luminosidad.
 
 ### Tarea C — Roadmap (cada punto exige spec antes de código)
 
-1. **Alertas de presupuesto, fases siguientes.** La fase A (aviso en la app) está hecha. Quedan la **B (email)**, ya viable porque el dominio `terryq.com` está verificado en Resend (hay que decidir disparador: al registrar un gasto o programado, y cómo evitar avisos repetidos), y la **C (push del navegador)**, que exige convertir la web en app instalable (service worker, manifest; en iPhone solo funciona con la app añadida a la pantalla de inicio). Cada una necesita su spec.
+1. **Alertas de presupuesto, fase C (push del navegador).** Las fases A (aviso en la app) y B (email), incluida la edición de gastos, están hechas. La C exige convertir la web en app instalable (service worker, manifest, permisos; en iPhone solo funciona con la app añadida a la pantalla de inicio) y usar `WEB_PUSH_*` y `user_settings.notify_push` (existe, sin usar). Necesita su spec. Disparadores aún fuera de las alertas: importación de extractos y movimientos recurrentes.
 2. **Fase 2:** GoCardless Bank Account Data, consentimiento de 90 días, deduplicación (la importación manual de `0028` ya usa `source = 'imported'`).
 3. **Fase 3:** multiusuario con políticas RLS abiertas y `MULTI_USER_SIGNUP_ENABLED`. Hoy el registro público está cerrado y la ruta `/signup` ya no existe; habría que reabrirla y ajustar el hook `before user created`.
 
