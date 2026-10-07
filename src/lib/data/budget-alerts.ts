@@ -38,6 +38,7 @@ export async function getBudgetAlertForExpense(
   if (!budget) return null;
 
   return detectBudgetAlert({
+    budgetId: budget.budgetId,
     categoryName: budget.categoryName,
     monthlyLimit: budget.monthlyLimit,
     alertThreshold: budget.alertThreshold,

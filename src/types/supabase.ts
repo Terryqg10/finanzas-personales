@@ -8,6 +8,41 @@ export type Database = {
   };
   public: {
     Tables: {
+      budget_alert_emails: {
+        Row: {
+          budget_id: string;
+          created_at: string;
+          id: string;
+          level: string;
+          month: string;
+          user_id: string;
+        };
+        Insert: {
+          budget_id: string;
+          created_at?: string;
+          id?: string;
+          level: string;
+          month: string;
+          user_id: string;
+        };
+        Update: {
+          budget_id?: string;
+          created_at?: string;
+          id?: string;
+          level?: string;
+          month?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'budget_alert_emails_budget_id_fkey';
+            columns: ['budget_id'];
+            isOneToOne: false;
+            referencedRelation: 'budgets';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       budgets: {
         Row: {
           alert_threshold: number;

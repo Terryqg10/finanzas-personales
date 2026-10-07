@@ -13,6 +13,10 @@ export const updateSavingsRateSchema = z.object({
     .max(100, 'El porcentaje máximo es 100.'),
 });
 
+export const updateNotifyEmailSchema = z.object({
+  enabled: z.boolean({ message: 'Valor inválido.' }),
+});
+
 export interface SettingsActionState {
   status: 'idle' | 'error' | 'success';
   message: string | null;

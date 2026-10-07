@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import { BaseCurrencyForm } from '@/components/settings/base-currency-form';
+import { NotifyEmailForm } from '@/components/settings/notify-email-form';
 import { SavingsRateForm } from '@/components/settings/savings-rate-form';
 import { getUserSettings } from '@/lib/data/user-settings';
 
@@ -35,6 +36,17 @@ export default async function ConfiguracionPage() {
           </p>
         </div>
         <SavingsRateForm currentRate={settings.savings_rate_target} />
+      </section>
+
+      <section className="bg-card space-y-4 rounded-2xl p-6 shadow-sm">
+        <div className="space-y-1">
+          <h2 className="text-foreground text-sm font-semibold">Avisos de presupuesto</h2>
+          <p className="text-muted-foreground text-sm">
+            Te enviamos un email la primera vez que un presupuesto cruza su umbral o su límite cada
+            mes. El aviso dentro de la app se muestra siempre.
+          </p>
+        </div>
+        <NotifyEmailForm initialEnabled={settings.notify_email} />
       </section>
 
       <Link

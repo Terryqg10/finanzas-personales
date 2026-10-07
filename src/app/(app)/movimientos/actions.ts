@@ -1,11 +1,18 @@
 'use server';
 
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
+import { after } from 'next/server';
 
 import type { BudgetAlert } from '@/lib/budget-alerts';
 import { getBudgetAlertForExpense } from '@/lib/data/budget-alerts';
+import { claimBudgetAlertEmail } from '@/lib/data/budget-alert-emails';
 import { getUserSettings } from '@/lib/data/user-settings';
+import { buildBudgetAlertEmail } from '@/lib/email/budget-alert-email';
+import { canSendBudgetAlertEmail } from '@/lib/email/budget-alert-eligibility';
+import { APP_URL } from '@/lib/email/config';
+import { sendEmail } from '@/lib/email/send-email';
 import { getExchangeRate } from '@/lib/exchange-rate';
 import { createClient } from '@/lib/supabase/server';
 import {
@@ -14,6 +21,62 @@ import {
   updateTransactionSchema,
   type TransactionActionState,
 } from '@/lib/validations/transaction';
+import type { Database } from '@/types/supabase';
+
+/**
+ * Prepara y encola el email de aviso. La reserva de la clave (usuario,
+ * presupuesto, mes, nivel) se hace aquí, antes de responder, porque es lo que
+ * decide quién envía; solo la llamada de red va en `after()`, para que el
+ * usuario no espere a Resend. Es secundario: nunca lanza ni afecta al gasto.
+ */
+async function queueBudgetAlertEmail(params: {
+  supabase: SupabaseClient<Database>;
+  alert: BudgetAlert;
+  currency: string;
+  notifyEmail: boolean;
+}): Promise<void> {
+  try {
+    const {
+      data: { user },
+    } = await params.supabase.auth.getUser();
+
+    const to = user?.email;
+    if (
+      !user ||
+      !to ||
+      !canSendBudgetAlertEmail({
+        email: to,
+        isAnonymous: user.is_anonymous === true,
+        notifyEmail: params.notifyEmail,
+      })
+    ) {
+      return;
+    }
+
+    const claim = await claimBudgetAlertEmail(params.supabase, {
+      userId: user.id,
+      budgetId: params.alert.budgetId,
+      level: params.alert.level,
+    });
+
+    if (claim === 'already_sent') return;
+    if (claim === 'error') {
+      console.error('[budget-alert-email] No se pudo reservar el aviso.');
+      return;
+    }
+
+    const email = buildBudgetAlertEmail(params.alert, params.currency, APP_URL);
+
+    after(async () => {
+      const result = await sendEmail({ to, ...email });
+      if (!result.ok) {
+        console.error(`[budget-alert-email] ${result.reason}: ${result.message}`);
+      }
+    });
+  } catch (err) {
+    console.error('[budget-alert-email]', err instanceof Error ? err.message : err);
+  }
+}
 
 export async function createTransaction(
   _prevState: TransactionActionState,
@@ -99,6 +162,15 @@ export async function createTransaction(
     } catch {
       budgetAlert = null;
     }
+  }
+
+  if (budgetAlert) {
+    await queueBudgetAlertEmail({
+      supabase,
+      alert: budgetAlert,
+      currency: settings.base_currency,
+      notifyEmail: settings.notify_email,
+    });
   }
 
   if (rateResult.stale) {

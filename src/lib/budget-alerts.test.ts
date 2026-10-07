@@ -4,6 +4,7 @@ import { detectBudgetAlert, formatBudgetAlert, type DetectBudgetAlertInput } fro
 
 function input(overrides: Partial<DetectBudgetAlertInput> = {}): DetectBudgetAlertInput {
   return {
+    budgetId: 'budget-1',
     categoryName: 'Comida',
     monthlyLimit: 100,
     alertThreshold: 80,
@@ -18,14 +19,17 @@ describe('detectBudgetAlert', () => {
     expect(detectBudgetAlert(input({ spentAfter: 79, addedAmount: 10 }))).toBeNull();
   });
 
-  it('avisa del umbral al cruzarlo', () => {
+  it('avisa del umbral al cruzarlo, con los datos que necesita el email', () => {
     const alert = detectBudgetAlert(input({ spentAfter: 85, addedAmount: 10 }));
 
     expect(alert).toEqual({
       level: 'threshold',
+      budgetId: 'budget-1',
       categoryName: 'Comida',
       percentage: 85,
       threshold: 80,
+      spent: 85,
+      monthlyLimit: 100,
     });
   });
 
@@ -38,9 +42,12 @@ describe('detectBudgetAlert', () => {
 
     expect(alert).toEqual({
       level: 'limit',
+      budgetId: 'budget-1',
       categoryName: 'Comida',
       percentage: 105,
       threshold: 80,
+      spent: 105,
+      monthlyLimit: 100,
     });
   });
 
@@ -75,20 +82,23 @@ describe('detectBudgetAlert', () => {
 });
 
 describe('formatBudgetAlert', () => {
+  const base = {
+    budgetId: 'budget-1',
+    categoryName: 'Ocio',
+    threshold: 80,
+    spent: 0,
+    monthlyLimit: 100,
+  };
+
   it('redacta el mensaje de límite', () => {
-    expect(
-      formatBudgetAlert({ level: 'limit', categoryName: 'Ocio', percentage: 110, threshold: 80 }),
-    ).toBe('Has superado el límite mensual de Ocio.');
+    expect(formatBudgetAlert({ ...base, level: 'limit', percentage: 110 })).toBe(
+      'Has superado el límite mensual de Ocio.',
+    );
   });
 
   it('redacta el mensaje de umbral con el porcentaje y el umbral', () => {
-    expect(
-      formatBudgetAlert({
-        level: 'threshold',
-        categoryName: 'Ocio',
-        percentage: 85,
-        threshold: 80,
-      }),
-    ).toBe('Vas por el 85% de tu límite de Ocio (umbral: 80%).');
+    expect(formatBudgetAlert({ ...base, level: 'threshold', percentage: 85 })).toBe(
+      'Vas por el 85% de tu límite de Ocio (umbral: 80%).',
+    );
   });
 });
