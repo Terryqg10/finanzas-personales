@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { pickDefaultCategories } from './default-categories';
+import {
+  getDefaultCategoryId,
+  isNotableSuggestion,
+  pickDefaultCategories,
+} from './default-categories';
 
 describe('pickDefaultCategories', () => {
   it('elige las categorías globales Otros e Ingresos', () => {
@@ -28,5 +32,26 @@ describe('pickDefaultCategories', () => {
       income: 'x',
     });
     expect(pickDefaultCategories([])).toEqual({ expense: null, income: null });
+  });
+});
+
+describe('getDefaultCategoryId', () => {
+  it('devuelve la categoría por defecto según el tipo', () => {
+    const defaults = { expense: 'otros', income: 'ingresos' };
+
+    expect(getDefaultCategoryId(defaults, 'expense')).toBe('otros');
+    expect(getDefaultCategoryId(defaults, 'income')).toBe('ingresos');
+  });
+});
+
+describe('isNotableSuggestion', () => {
+  it('señala la sugerencia solo si difiere de la categoría por defecto', () => {
+    expect(isNotableSuggestion('comida', 'otros')).toBe(true);
+    expect(isNotableSuggestion('otros', 'otros')).toBe(false);
+  });
+
+  it('no hay nada que señalar sin sugerencia', () => {
+    expect(isNotableSuggestion(null, 'otros')).toBe(false);
+    expect(isNotableSuggestion(null, null)).toBe(false);
   });
 });

@@ -1,11 +1,50 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+import type { CategoryHistoryEntry } from '@/lib/import/suggest-categories';
 import type { Database } from '@/types/supabase';
 
 type Client = SupabaseClient<Database>;
 type TransactionInsert = Database['public']['Tables']['transactions']['Insert'];
 
 const PAGE_SIZE = 1000;
+/** Tope de movimientos recientes que se leen para sugerir categorías (acota el coste). */
+const CATEGORY_HISTORY_LIMIT = 5000;
+
+/**
+ * Historial reciente del usuario para sugerir categorías al importar: concepto,
+ * tipo, categoría y fecha de sus últimos `CATEGORY_HISTORY_LIMIT` movimientos.
+ * Paginado porque PostgREST limita las filas por respuesta; RLS filtra por usuario.
+ * Spec: specs/importacion-categorias-automaticas.md, sección 4.2.
+ */
+export async function getCategoryHistory(supabase: Client): Promise<CategoryHistoryEntry[]> {
+  const history: CategoryHistoryEntry[] = [];
+
+  for (let from = 0; from < CATEGORY_HISTORY_LIMIT; from += PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('description, type, category_id, date')
+      .order('date', { ascending: false })
+      .order('id')
+      .range(from, from + PAGE_SIZE - 1);
+
+    if (error) {
+      throw new Error('No se pudo leer tu historial de categorías.');
+    }
+
+    for (const row of data) {
+      history.push({
+        description: row.description,
+        type: row.type,
+        categoryId: row.category_id,
+        date: row.date,
+      });
+    }
+
+    if (data.length < PAGE_SIZE) break;
+  }
+
+  return history;
+}
 
 /**
  * Claves de importación que el usuario ya tiene entre `dateFrom` y `dateTo`.

@@ -26,3 +26,22 @@ export function pickDefaultCategories(categories: readonly CategoryRef[]): Defau
     income: findGlobalByName(categories, 'Ingresos') ?? fallback,
   };
 }
+
+/** Categoría por defecto de un tipo de movimiento. */
+export function getDefaultCategoryId(
+  defaults: DefaultCategoryIds,
+  type: 'income' | 'expense',
+): string | null {
+  return type === 'expense' ? defaults.expense : defaults.income;
+}
+
+/**
+ * Una sugerencia del historial solo merece señalarse si aporta algo: si
+ * coincide con la categoría por defecto (p. ej. "Otros") no se marca.
+ */
+export function isNotableSuggestion(
+  suggestedCategoryId: string | null,
+  defaultCategoryId: string | null,
+): boolean {
+  return suggestedCategoryId !== null && suggestedCategoryId !== defaultCategoryId;
+}

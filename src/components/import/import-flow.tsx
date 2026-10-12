@@ -15,7 +15,11 @@ import {
 import type { Category } from '@/lib/data/categories';
 import { formatShortDate } from '@/lib/format-date';
 import { formatMoney } from '@/lib/format-money';
-import { pickDefaultCategories } from '@/lib/import/default-categories';
+import {
+  getDefaultCategoryId,
+  isNotableSuggestion,
+  pickDefaultCategories,
+} from '@/lib/import/default-categories';
 import type { ParseError } from '@/lib/import/imagin-csv';
 import { cn } from '@/lib/utils';
 import { IMPORT_MAX_BYTES, type ImportPreviewRow } from '@/lib/validations/import';
@@ -69,7 +73,8 @@ export function ImportFlow({ categories }: { categories: Category[] }) {
       const initialCategories: Record<string, string> = {};
       const initialSelection = new Set<string>();
       for (const row of result.rows) {
-        const categoryId = row.type === 'expense' ? defaults.expense : defaults.income;
+        // Primero la categoría que ya usaste para este comercio; si no hay, la de por defecto.
+        const categoryId = row.suggestedCategoryId ?? getDefaultCategoryId(defaults, row.type);
         if (categoryId) initialCategories[row.key] = categoryId;
         // Las ya importadas y las posibles transferencias internas salen desmarcadas.
         if (row.status === 'new' && !row.isInternalTransfer) initialSelection.add(row.key);
@@ -131,6 +136,12 @@ export function ImportFlow({ categories }: { categories: Category[] }) {
   const existingCount = preview ? preview.rows.length - newCount : 0;
   const internalCount =
     preview?.rows.filter((row) => row.status === 'new' && row.isInternalTransfer).length ?? 0;
+  const suggestedCount =
+    preview?.rows.filter(
+      (row) =>
+        row.status === 'new' &&
+        isNotableSuggestion(row.suggestedCategoryId, getDefaultCategoryId(defaults, row.type)),
+    ).length ?? 0;
 
   return (
     <div className="space-y-6">
@@ -190,6 +201,12 @@ export function ImportFlow({ categories }: { categories: Category[] }) {
                 {existingCount > 0 &&
                   ` · ${existingCount} ya importado${existingCount === 1 ? '' : 's'}`}
               </p>
+              {suggestedCount > 0 && (
+                <p className="text-muted-foreground text-xs">
+                  {suggestedCount} con categoría sugerida por tu historial: revísala y cámbiala si
+                  quieres.
+                </p>
+              )}
               {internalCount > 0 && (
                 <p className="text-muted-foreground text-xs">
                   {internalCount} posible{internalCount === 1 ? '' : 's'} transferencia
@@ -253,6 +270,13 @@ export function ImportFlow({ categories }: { categories: Category[] }) {
                       {formatShortDate(row.date)}
                       {isExisting && ' · ya importado'}
                       {!isExisting && row.isInternalTransfer && ' · posible transferencia interna'}
+                      {!isExisting &&
+                        categoryByKey[row.key] === row.suggestedCategoryId &&
+                        isNotableSuggestion(
+                          row.suggestedCategoryId,
+                          getDefaultCategoryId(defaults, row.type),
+                        ) &&
+                        ' · categoría sugerida'}
                     </p>
                   </div>
 

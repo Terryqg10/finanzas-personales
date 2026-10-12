@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 
 import { SUPPORTED_CURRENCY_CODES } from '@/lib/currencies';
 import {
+  getCategoryHistory,
   getExistingImportKeys,
   insertImportedTransactions,
 } from '@/lib/data/imported-transactions';
@@ -12,6 +13,7 @@ import { getUserSettings } from '@/lib/data/user-settings';
 import { getExchangeRate } from '@/lib/exchange-rate';
 import { parseImaginCsv, type ParseError, type ParsedRow } from '@/lib/import/imagin-csv';
 import { assignImportKeys, isInternalTransfer } from '@/lib/import/import-key';
+import { suggestCategories } from '@/lib/import/suggest-categories';
 import { createClient } from '@/lib/supabase/server';
 import {
   confirmImportSchema,
@@ -135,7 +137,20 @@ export async function previewImport(text: string): Promise<ImportPreviewResult> 
     return { status: 'error', message: prepared.message };
   }
 
-  const rows: ImportPreviewRow[] = prepared.entries.map(({ row, key }) => ({
+  // Las sugerencias son una ayuda: si el historial no se puede leer, la vista
+  // previa sale con las categorías por defecto en vez de impedir la importación.
+  let suggestions: (string | null)[] = [];
+  try {
+    const history = await getCategoryHistory(prepared.supabase);
+    suggestions = suggestCategories(
+      history,
+      prepared.entries.map(({ row }) => ({ description: row.description, type: row.type })),
+    );
+  } catch {
+    suggestions = [];
+  }
+
+  const rows: ImportPreviewRow[] = prepared.entries.map(({ row, key }, index) => ({
     key,
     line: row.line,
     date: row.date,
@@ -145,6 +160,7 @@ export async function previewImport(text: string): Promise<ImportPreviewResult> 
     currency: row.currency,
     status: prepared.existing.has(key) ? 'existing' : 'new',
     isInternalTransfer: isInternalTransfer(row.description),
+    suggestedCategoryId: suggestions[index] ?? null,
   }));
 
   return { status: 'ok', rows, errors: prepared.errors };

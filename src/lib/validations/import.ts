@@ -38,6 +38,8 @@ export interface ImportPreviewRow {
   /** `existing`: ya importada antes (se omite). */
   status: 'new' | 'existing';
   isInternalTransfer: boolean;
+  /** Categoría que el usuario ya usó para este comercio y tipo, o `null` si no hay historial. */
+  suggestedCategoryId: string | null;
 }
 
 export type ImportPreviewResult =
