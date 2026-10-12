@@ -15,6 +15,14 @@ import {
   updateTransactionSchema,
   type TransactionActionState,
 } from '@/lib/validations/transaction';
+import {
+  deleteTransactionsSchema,
+  formatMovementCount,
+  transactionRangeSchema,
+  type BulkDeleteState,
+  type CountRangeResult,
+  type TransactionRange,
+} from '@/lib/validations/transaction-bulk';
 
 export async function createTransaction(
   _prevState: TransactionActionState,
@@ -276,4 +284,159 @@ export async function deleteTransaction(
   revalidatePath('/movimientos');
   revalidatePath('/');
   return { status: 'success', message: 'Movimiento borrado.' };
+}
+
+// ---------------------------------------------------------------------------
+// Borrado masivo (specs/borrado-masivo-movimientos.md)
+// ---------------------------------------------------------------------------
+
+type BulkContext =
+  { ok: true; supabase: Awaited<ReturnType<typeof createClient>> } | { ok: false; message: string };
+
+/** Sesión y cliente comunes a las acciones de borrado masivo. RLS limita todo al propio usuario. */
+async function getBulkContext(): Promise<BulkContext> {
+  const userId = (await headers()).get('x-user-id');
+
+  if (!userId) {
+    return { ok: false, message: 'Tu sesión ha expirado. Inicia sesión de nuevo.' };
+  }
+
+  try {
+    return { ok: true, supabase: await createClient() };
+  } catch (err) {
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : 'Error de configuración del servidor.',
+    };
+  }
+}
+
+/** Borra los movimientos seleccionados (hasta 500) en una sola sentencia. */
+export async function deleteTransactions(
+  _prevState: BulkDeleteState,
+  formData: FormData,
+): Promise<BulkDeleteState> {
+  const parsed = deleteTransactionsSchema.safeParse({ ids: formData.getAll('ids').map(String) });
+
+  if (!parsed.success) {
+    return { status: 'error', message: parsed.error.issues[0]?.message ?? 'Datos inválidos.' };
+  }
+
+  const context = await getBulkContext();
+  if (!context.ok) return { status: 'error', message: context.message };
+
+  const { data, error } = await context.supabase
+    .from('transactions')
+    .delete()
+    .in('id', parsed.data.ids)
+    .select('id');
+
+  if (error) {
+    return {
+      status: 'error',
+      message: 'No se pudieron borrar los movimientos. Inténtalo de nuevo.',
+    };
+  }
+
+  const deleted = data?.length ?? 0;
+
+  if (deleted === 0) {
+    return { status: 'error', message: 'No tienes permiso para borrar esos movimientos.' };
+  }
+
+  revalidatePath('/movimientos');
+  revalidatePath('/');
+  return {
+    status: 'success',
+    message: `${formatMovementCount(deleted)} borrado${deleted === 1 ? '' : 's'}.`,
+    deleted,
+  };
+}
+
+/** Cuenta los movimientos de un periodo, sin traerlos: es el paso de confirmación del borrado. */
+export async function countTransactionsInRange(range: TransactionRange): Promise<CountRangeResult> {
+  const parsed = transactionRangeSchema.safeParse(range);
+
+  if (!parsed.success) {
+    return { status: 'error', message: parsed.error.issues[0]?.message ?? 'Periodo inválido.' };
+  }
+
+  const context = await getBulkContext();
+  if (!context.ok) return { status: 'error', message: context.message };
+
+  let query = context.supabase
+    .from('transactions')
+    .select('id', { count: 'exact', head: true })
+    .gte('date', parsed.data.from)
+    .lte('date', parsed.data.to);
+
+  if (parsed.data.onlyImported) {
+    query = query.eq('source', 'imported');
+  }
+
+  const { count, error } = await query;
+
+  if (error) {
+    return {
+      status: 'error',
+      message: 'No se pudieron contar los movimientos. Inténtalo de nuevo.',
+    };
+  }
+
+  return { status: 'ok', count: count ?? 0 };
+}
+
+/**
+ * Borra todos los movimientos de un periodo. El servidor vuelve a validar el
+ * rango (no se fía del paso de confirmación del cliente) y borra con una única
+ * sentencia: o se borra todo o nada.
+ */
+export async function deleteTransactionsInRange(
+  _prevState: BulkDeleteState,
+  formData: FormData,
+): Promise<BulkDeleteState> {
+  const parsed = transactionRangeSchema.safeParse({
+    from: formData.get('from'),
+    to: formData.get('to'),
+    onlyImported: formData.get('onlyImported') === 'true',
+  });
+
+  if (!parsed.success) {
+    return { status: 'error', message: parsed.error.issues[0]?.message ?? 'Periodo inválido.' };
+  }
+
+  const context = await getBulkContext();
+  if (!context.ok) return { status: 'error', message: context.message };
+
+  let query = context.supabase
+    .from('transactions')
+    .delete({ count: 'exact' })
+    .gte('date', parsed.data.from)
+    .lte('date', parsed.data.to);
+
+  if (parsed.data.onlyImported) {
+    query = query.eq('source', 'imported');
+  }
+
+  const { count, error } = await query;
+
+  if (error) {
+    return {
+      status: 'error',
+      message: 'No se pudieron borrar los movimientos. Inténtalo de nuevo.',
+    };
+  }
+
+  const deleted = count ?? 0;
+
+  revalidatePath('/movimientos');
+  revalidatePath('/');
+  return {
+    status: 'success',
+    message:
+      deleted === 0
+        ? 'No había movimientos que borrar en ese periodo.'
+        : `${formatMovementCount(deleted)} borrado${deleted === 1 ? '' : 's'}.`,
+    deleted,
+  };
 }

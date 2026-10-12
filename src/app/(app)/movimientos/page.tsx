@@ -1,7 +1,9 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { CreateTransactionDialog } from '@/components/transactions/create-transaction-dialog';
+import { DeleteRangeDialog } from '@/components/transactions/delete-range-dialog';
 import { FilterBar } from '@/components/transactions/filter-bar';
 import { PaginationControls } from '@/components/transactions/pagination-controls';
 import { TransactionsList } from '@/components/transactions/transactions-list';
@@ -47,6 +49,16 @@ export default async function MovimientosPage({
     getUserSettings(),
   ]);
 
+  // Tras borrar la última fila de una página, esa página queda vacía: se vuelve a la primera conservando los filtros.
+  if (transactions.length === 0 && page > 0) {
+    const rest = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (key !== 'page' && typeof value === 'string') rest.set(key, value);
+    }
+    const query = rest.toString();
+    redirect(query ? `/movimientos?${query}` : '/movimientos');
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -56,7 +68,8 @@ export default async function MovimientosPage({
             {total} movimiento{total === 1 ? '' : 's'} en total.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <DeleteRangeDialog defaultFrom={filters.dateFrom} defaultTo={filters.dateTo} />
           <Button asChild variant="secondary">
             <Link href="/movimientos/importar">Importar extracto</Link>
           </Button>
@@ -72,7 +85,12 @@ export default async function MovimientosPage({
         </p>
       ) : (
         <>
-          <TransactionsList transactions={transactions} categories={categories} />
+          {/* La clave remonta la lista al cambiar de página o de filtros: así la selección múltiple nunca incluye filas que ya no se ven. */}
+          <TransactionsList
+            key={`${page}|${JSON.stringify(filters)}`}
+            transactions={transactions}
+            categories={categories}
+          />
 
           <PaginationControls page={page} hasMore={hasMore} />
         </>

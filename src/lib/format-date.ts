@@ -8,3 +8,13 @@ export function formatShortDate(isoDate: string): string {
   const date = new Date(`${isoDate}T00:00:00`);
   return new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short' }).format(date);
 }
+
+/** Fecha completa para frases, p. ej. "5 de octubre de 2026". */
+export function formatLongDate(isoDate: string): string {
+  const date = new Date(`${isoDate}T00:00:00`);
+  return new Intl.DateTimeFormat('es-ES', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(date);
+}
